@@ -10,6 +10,8 @@ import { type DefaultSession, type NextAuthConfig } from "next-auth";
 
 // Importa o provedor de autenticação do Discord para NextAuth.js, permitindo que os usuários façam login usando suas contas do Discord
 import DiscordProvider from "next-auth/providers/discord";
+import Keycloak from "next-auth/providers/keycloak";
+import Google from "next-auth/providers/google";
 
 // Importa o banco de dados Prisma configurado na aplicação, que será usado pelo adaptador do NextAuth.js
 import { db } from "~/server/db";
@@ -44,11 +46,41 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 
+// Adiciona Keycloak em dev um serviço OAUTH para testes
+ const providers = [];
+ if (process.env.NODE_ENV === "development") {
+  providers.push(
+    Keycloak,
+    // Servidor mock que imita o Google
+    Google({
+      clientId: "google-id-123",
+      clientSecret: "dummy",
+      authorization: {
+        url: "https://oauth-mock.mock.beeceptor.com/oauth/authorize",
+      },
+      token: {
+        url: "https://oauth-mock.mock.beeceptor.com/oauth/token/google",
+      },
+      userinfo: {
+        url: "https://oauth-mock.mock.beeceptor.com/userinfo/google",
+      },
+      profile(profile) {
+        return {
+          id: String(profile.sub),
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        }
+      },
+    })
+  )
+}
 
 // Define a configuração do NextAuth.js, incluindo provedores de autenticação, adaptador de banco de dados e callbacks
 export const authConfig = {
   providers: [ // Define os provedores de autenticação que os usuários podem usar para fazer login
     DiscordProvider, // Adiciona o provedor de autenticação do Discord, permitindo login com contas do Discord
+    ...providers,
     /**
      * ...add more providers here.
      *

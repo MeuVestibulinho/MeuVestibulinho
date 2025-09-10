@@ -2,8 +2,6 @@
 
 // Importa o ReactNode do React, que é um tipo que representa qualquer coisa que pode ser renderizada pelo React (elementos, strings, números, fragmentos, etc.)
 import Link from "next/link";
-// Importa o componente LatestPost que exibe o post mais recente do usuário e um formulário para criar novos posts
-import { LatestPost } from "~/app/_components/post";
 // Importa a função auth que lida com autenticação de usuários
 import { auth } from "~/server/auth";
 // Importa o objeto api do TRPC para fazer chamadas às rotas definidas no backend
@@ -16,18 +14,14 @@ import { api, HydrateClient } from "~/trpc/server";
 // Componente assíncrono que representa a página inicial da aplicação
 // Ele busca uma saudação do backend usando o TRPC e a sessão do usuário autenticado
 // Se o usuário estiver autenticado, ele pré-busca o post mais recente para melhorar a performance
-// Finalmente, ele renderiza a interface da página inicial, incluindo links, saudação, estado de autenticação e o componente LatestPost se o usuário estiver logado
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" }); // Busca uma saudação do backend usando o TRPC, passando um texto "from tRPC"
   const session = await auth(); // Busca a sessão do usuário autenticado usando a função auth
 
-  if (session?.user) { // Se o usuário estiver autenticado (session e session.user existem)
-    void api.post.getLatest.prefetch(); // Pré-busca o post mais recente do usuário para melhorar a performance (void é usado para ignorar o retorno da promessa)
-  }
+  
 
   // Retorna o JSX que define a interface da página inicial
   // JSX é uma sintaxe que mistura HTML e JavaScript, usada pelo React para definir a UI (User Interface = interface do usuário)
-  // Aqui exibimos links para documentação, a saudação do backend, o estado de autenticação do usuário e o componente LatestPost se o usuário estiver logado
+  // Aqui exibimos links pra documentação, a saudação do backend e o estado de autenticação do usuário
   return (
 
     // HydrateClient é um componente que hidrata o estado do TRPC no cliente, permitindo que o frontend use os dados pré-buscados
@@ -63,7 +57,7 @@ export default async function Home() {
           </div>
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
+              {session?.user ? await api.post.getSecretMessage() : "Loga pra ver!"  }
             </p>
 
             <div className="flex flex-col items-center justify-center gap-4">
@@ -78,8 +72,6 @@ export default async function Home() {
               </Link>
             </div>
           </div>
-
-          {session?.user && <LatestPost />}
         </div>
       </main>
     </HydrateClient>
@@ -90,7 +82,6 @@ export default async function Home() {
 // Ele busca uma saudação do backend usando o TRPC e a sessão do usuário autenticado
 // Se o usuário estiver autenticado, ele pré-busca o post mais recente para melhorar a performance
 
-// Finalmente, ele renderiza a interface da página inicial, incluindo links, saudação, estado de autenticação e o componente LatestPost se o usuário estiver logado
 // A interface é definida usando JSX, uma sintaxe que mistura HTML e JavaScript, usada pelo React para criar a UI (User Interface = interface do usuário)
 
 // O componente HydrateClient envolve o conteúdo para hidratar o estado do TRPC no cliente, permitindo que o frontend use os dados pré-buscados
