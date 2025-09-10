@@ -3,8 +3,8 @@ import { z } from "zod";
 
 export const env = createEnv({
   /**
-   * Specify your server-side environment variables schema here. This way you can ensure the app
-   * isn't built with invalid env vars.
+   * Especifique o esquema das variáveis de ambiente do lado do servidor aqui. Assim, você pode garantir que o app
+   * não será construído com variáveis de ambiente inválidas.
    */
   server: {
     AUTH_SECRET:
@@ -20,8 +20,8 @@ export const env = createEnv({
   },
 
   /**
-   * Specify your client-side environment variables schema here. This way you can ensure the app
-   * isn't built with invalid env vars. To expose them to the client, prefix them with
+   * Especifique o esquema das variáveis de ambiente do lado do cliente aqui. Assim, você pode garantir que o app
+   * não será construído com variáveis de ambiente inválidas. Para expô-las ao cliente, prefixe com
    * `NEXT_PUBLIC_`.
    */
   client: {
@@ -29,8 +29,8 @@ export const env = createEnv({
   },
 
   /**
-   * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
-   * middlewares) or client-side so we need to destruct manually.
+   * Você não pode desestruturar `process.env` como um objeto comum nos edge runtimes do Next.js (por exemplo,
+   * middlewares) ou no lado do cliente, então precisamos desestruturar manualmente.
    */
   runtimeEnv: {
     AUTH_SECRET: process.env.AUTH_SECRET,
@@ -40,13 +40,13 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
   },
   /**
-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
-   * useful for Docker builds.
+   * Execute `build` ou `dev` com `SKIP_ENV_VALIDATION` para pular a validação das variáveis de ambiente.
+   * Isso é especialmente útil para builds com Docker.
    */
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   /**
-   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
-   * `SOME_VAR=''` will throw an error.
+   * Faz com que strings vazias sejam tratadas como undefined. `SOME_VAR: z.string()` e
+   * `SOME_VAR=''` lançarão um erro.
    */
   emptyStringAsUndefined: true,
 });

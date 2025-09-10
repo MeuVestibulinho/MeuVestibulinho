@@ -1,10 +1,23 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+
+// O que é o prisma ? 
+
+// É uma ferramenta que facilita a interação entre a sua aplicação e um banco de dados relacional,
+// sendo amplamente utilizada por sua modernidade, tipagem segura e por simplificar tarefas como modelagem de dados e migrações. 
+
+
+
+
+// Define como o Prisma vai gerar o Prisma Client (biblioteca tipada para acessar o DB):
 generator client {
     provider = "prisma-client-js"
 }
 
+
+
+//Diz ao Prisma qual banco usar (Postgres, MySQL, SQLite, etc.) e onde está a conexão:
 datasource db {
     provider = "postgresql"
     // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
@@ -14,61 +27,71 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
-}
-
-// Necessary for Next auth
-model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
-
-    @@unique([provider, providerAccountId])
-}
-
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
+// Usuário da aplicação (aluno/professor/admin, etc.)
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
+  id            String   @id @default(cuid())    // PK string gerada com cuid(), cuid() é um gerador de IDs únicos
+  name          String?                         // nome opcional
+  email         String?  @unique                // e-mail opcional, mas único se existir
+  emailVerified DateTime?                       // quando o e-mail foi verificado (magic link)
+  image         String?                         // avatar/foto (URL)
+  accounts      Account[]                       // 1:N -> contas OAuth ligadas a este user (OAuth é um padrão aberto de autorização que permite que você use uma conta de um serviço (Google, Facebook, GitHub, Discord, etc.) para se autenticar em outro sistema sem precisar passar a senha desse serviço.)
+  sessions      Session[]                       // 1:N -> sessões ativas (cookies/JWT persistido)
 }
 
+// Conta de provedor de login, aqui ficam as informações de autenticação fornecidas pelo provedor de OAuth (google, github, discord, etc.)
+model Account {
+  id                String  @id @default(cuid()) // PK
+  userId            String                         // FK para User
+  type              String                         // "oauth" | "oidc" | "email" | "credentials"…
+  provider          String                         // nome do provedor, ex.: "google"
+  providerAccountId String                         // ID do usuário no provedor (ex.: sub do Google)
+  refresh_token     String?                        // token de refresh (se o provedor fornece)
+  access_token      String?                        // token de acesso
+  expires_at        Int?                           // epoch (segundos) de expiração do access_token
+  token_type        String?                        // ex.: "bearer"
+  scope             String?                        // escopos concedidos, ex.: "openid email profile"
+  id_token          String?                        // id_token (OIDC)
+  session_state     String?                        // usado por alguns provedores (opcional)
+
+  // Relação N:1 com User; apaga contas ao apagar o user (Cascade), é um comando do SQL, vimos isso na aula de base de dados relacional
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Restrição única: um mesmo (provider, providerAccountId) só pode existir uma vez
+  // Provider é o nome do provedor (ex.: "google")
+  // providerAccountId é o ID do usuário nesse provedor (ex.: sub do Google)
+  // Isso evita que o mesmo usuário do Google seja cadastrado várias vezes
+  @@unique([provider, providerAccountId])
+}
+
+// Sessão persistida pelo NextAuth (se usar sessões em BD; com JWT puro pode não usar), aqui ficam os tokens de sessão e quando expiram
+// Cada sessão está ligada a um usuário, essa tabela guarda as sessões ativas, que são criadas quando o usuário faz login
+// e são removidas quando o usuário faz logout ou a sessão expira
+model Session {
+  id           String   @id @default(cuid())      // PK (PK = Primary Key = chave primária)
+  sessionToken String   @unique                   // token da sessão (chave de lookup[ lookup = busca ])
+  userId       String                              // FK -> User (qual usuário tem essa sessão)
+  expires      DateTime                            // quando a sessão expira (UTC = tempo universal coordenado, ex.: 2024-06-25T12:00:00Z)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // Relação N:1 com User; apaga sessões ao apagar o user (Cascade)
+}
+
+// Tokens temporários para verificação (ex.: e-mail de login, reset de senha)
+// Eles são criados quando o usuário pede um link mágico por e-mail (magic link) ou um reset de senha
+// e são removidos quando usados ou expirados, eles servem para validar que o usuário que clicou no link é o dono do e-mail
+// Cada token está ligado a um identificador (normalmente o e-mail do usuário)
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String                               // e-mail ou identificador
+  token      String   @unique                     // token enviado ao usuário
+  expires    DateTime                             // validade do token
 
-    @@unique([identifier, token])
+  // Restrição única composta para evitar duplicatas por identificador+token, garantindo que cada token seja único para um dado identificador (identificador é o e-mail do usuário)
+  @@unique([identifier, token])
 }
+
+
+// Nesse arquivo definimos as tabelas do banco de dados e seus relacionamentos, que serão usados pelo Prisma Client para fazer consultas ao banco de dados de forma tipada e segura.
+// Cada um desses models vira uma tabela no banco de dados relacional (PostgreSQL, MySQL, SQLite, etc.) e o Prisma Client gera código TypeScript para interagir com essas tabelas de forma fácil e segura.
+
+
+
+

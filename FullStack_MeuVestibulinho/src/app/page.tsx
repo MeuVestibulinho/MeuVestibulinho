@@ -1,24 +1,42 @@
-import Link from "next/link";
 
+
+// Importa o ReactNode do React, que é um tipo que representa qualquer coisa que pode ser renderizada pelo React (elementos, strings, números, fragmentos, etc.)
+import Link from "next/link";
+// Importa o componente LatestPost que exibe o post mais recente do usuário e um formulário para criar novos posts
 import { LatestPost } from "~/app/_components/post";
+// Importa a função auth que lida com autenticação de usuários
 import { auth } from "~/server/auth";
+// Importa o objeto api do TRPC para fazer chamadas às rotas definidas no backend
+// TRPC é uma biblioteca que facilita a comunicação entre frontend e backend com TypeScript
+// Com rotas, eu quero dizer as funções que definimos no backend para criar, ler, atualizar e deletar dados (GET, POST, PUT, DELETE)
 import { api, HydrateClient } from "~/trpc/server";
 
-export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-  const session = await auth();
 
-  if (session?.user) {
-    void api.post.getLatest.prefetch();
+
+// Componente assíncrono que representa a página inicial da aplicação
+// Ele busca uma saudação do backend usando o TRPC e a sessão do usuário autenticado
+// Se o usuário estiver autenticado, ele pré-busca o post mais recente para melhorar a performance
+// Finalmente, ele renderiza a interface da página inicial, incluindo links, saudação, estado de autenticação e o componente LatestPost se o usuário estiver logado
+export default async function Home() {
+  const hello = await api.post.hello({ text: "from tRPC" }); // Busca uma saudação do backend usando o TRPC, passando um texto "from tRPC"
+  const session = await auth(); // Busca a sessão do usuário autenticado usando a função auth
+
+  if (session?.user) { // Se o usuário estiver autenticado (session e session.user existem)
+    void api.post.getLatest.prefetch(); // Pré-busca o post mais recente do usuário para melhorar a performance (void é usado para ignorar o retorno da promessa)
   }
 
+  // Retorna o JSX que define a interface da página inicial
+  // JSX é uma sintaxe que mistura HTML e JavaScript, usada pelo React para definir a UI (User Interface = interface do usuário)
+  // Aqui exibimos links para documentação, a saudação do backend, o estado de autenticação do usuário e o componente LatestPost se o usuário estiver logado
   return (
+
+    // HydrateClient é um componente que hidrata o estado do TRPC no cliente, permitindo que o frontend use os dados pré-buscados
     <HydrateClient>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
+            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App 
+          </h1> 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
             <Link
               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
@@ -67,3 +85,15 @@ export default async function Home() {
     </HydrateClient>
   );
 }
+
+// Nesse arquivo definimos a página inicial da aplicação
+// Ele busca uma saudação do backend usando o TRPC e a sessão do usuário autenticado
+// Se o usuário estiver autenticado, ele pré-busca o post mais recente para melhorar a performance
+
+// Finalmente, ele renderiza a interface da página inicial, incluindo links, saudação, estado de autenticação e o componente LatestPost se o usuário estiver logado
+// A interface é definida usando JSX, uma sintaxe que mistura HTML e JavaScript, usada pelo React para criar a UI (User Interface = interface do usuário)
+
+// O componente HydrateClient envolve o conteúdo para hidratar o estado do TRPC no cliente, permitindo que o frontend use os dados pré-buscados
+// A estilização é feita usando classes do Tailwind CSS para um visual moderno e responsivo
+// Isso cria uma experiência de usuário agradável, mostrando informações relevantes com base no estado de autenticação
+// E aproveitando os benefícios do TRPC para comunicação eficiente entre frontend e backend com TypeScript
