@@ -15,6 +15,8 @@ import { Geist } from "next/font/google";
 // Isso permite que qualquer componente da aplicação faça chamadas às rotas definidas no backend usando o TRPC( Type-safe Remote Procedure Call, é uma biblioteca que facilita a comunicação entre frontend e backend com TypeScript )
 import { TRPCReactProvider } from "~/trpc/react";
 
+import { Navbar } from "./_components/Navbar";  
+
 
 // Define os metadados da aplicação, como título, descrição e ícones
 // Esses metadados são usados pelo Next.js para configurar a página HTML gerada
@@ -42,10 +44,14 @@ export default function RootLayout({
   children, // children é o conteúdo filho que será renderizado dentro do layout
 }: Readonly<{ children: React.ReactNode }>) { // Define o tipo das props, onde children é do tipo React.ReactNode (qualquer conteúdo React válido)
   return (
+
+    <> <Navbar />
+
     <html lang="pt-BR" className={`${geist.variable}`}>{/* Define a tag <html> com o atributo lang para especificar o idioma da página (português do Brasil) e aplica a fonte Geist Sans */}
       <body>
         <TRPCReactProvider>{children}</TRPCReactProvider> {/* Envolve os children com o TRPCReactProvider para fornecer o contexto do TRPC */}
       </body>
     </html>
+    </>
   );
 }
