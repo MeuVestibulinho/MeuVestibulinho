@@ -13,7 +13,8 @@ type ButtonProps = {
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ asChild, variant = "primary", className, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+    const Comp = (asChild ? Slot : "button") as React.ElementType;
+
     const controls = useAnimation();
 
     const base =
