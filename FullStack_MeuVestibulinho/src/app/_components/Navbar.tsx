@@ -130,7 +130,7 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
       </motion.div>
 
       {/* Tooltip */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isHovered && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -203,7 +203,7 @@ export const Navbar = () => {
             onClick={toggleMobileMenu}
             className="lg:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
           >
-            <AnimatePresence mode="wait">
+            <AnimatePresence initial={false} mode="wait">
               {isMobileMenuOpen ? (
                 <motion.div
                   key="close"
@@ -231,7 +231,7 @@ export const Navbar = () => {
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
