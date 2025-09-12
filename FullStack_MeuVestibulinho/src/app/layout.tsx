@@ -17,6 +17,8 @@ import { TRPCReactProvider } from "~/trpc/react";
 
 import { Navbar } from "./_components/Navbar";  
 
+import { Footer } from "./_components/Footer";
+
 
 // Define os metadados da aplicação, como título, descrição e ícones
 // Esses metadados são usados pelo Next.js para configurar a página HTML gerada
@@ -52,6 +54,7 @@ export default function RootLayout({
         <TRPCReactProvider>{children}</TRPCReactProvider> {/* Envolve os children com o TRPCReactProvider para fornecer o contexto do TRPC */}
       </body>
     </html>
+    <Footer />
     </>
   );
 }

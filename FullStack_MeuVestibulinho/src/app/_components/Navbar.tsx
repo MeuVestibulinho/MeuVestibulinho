@@ -28,7 +28,7 @@ const navItems = [
   },
   {
     name: "Guia de Estudos",
-    href: "",
+    href: "guia",
     icon: GraduationCap,
   },
   {
