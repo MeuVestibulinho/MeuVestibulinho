@@ -32,21 +32,21 @@ const footerLinks = {
     { name: "Mini Cursos", href: "", icon: Play },
   ],
   recursos: [
-    { name: "Trilha de Estudos", href: "", icon: BookOpen },
-    { name: "Exercícios", href: "", icon: BookOpen },
-    { name: "Dicas e Estratégias", href: "", icon: Sparkles },
-    { name: "Comunidade", href: "", icon: User },
+    { name: "Trilha de Estudos", href: "/trilha", icon: BookOpen },
+    { name: "Exercícios", href: "/exercicios", icon: BookOpen },
+    { name: "Dicas e Estratégias", href: "/dicas", icon: Sparkles },
+    { name: "Comunidade", href: "/comunidade", icon: User },
   ],
   institucional: [
     { name: "Sobre Nós", href: "/sobre" },
-    { name: "Como Funciona", href: "" },
+    { name: "Como Funciona", href: "/funcionamento" },
     { name: "Depoimentos", href: "" },
   ],
   suporte: [
-    { name: "Central de Ajuda", href: "" },
-    { name: "Contato", href: "" },
-    { name: "Política de Privacidade", href: "" },
-    { name: "Termos de Uso", href: "" },
+    { name: "Central de Ajuda", href: "/ajuda" },
+    { name: "Contato", href: "/contato" },
+    { name: "Política de Privacidade", href: "/privacidade" },
+    { name: "Termos de Uso", href: "/termos" },
   ]
 };
 

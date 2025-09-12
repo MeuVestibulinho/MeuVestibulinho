@@ -36,7 +36,8 @@ export default async function Home() {
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500 rounded-full blur-3xl"></div>
         </div>
     
-        <div className="container mx-auto px-4 pt-20 pb-32 relative z-10">
+  {/* Aumentado o padding-top para descer o conteúdo abaixo do topo */}
+  <div className="container mx-auto px-4 pt-36 md:pt-44 xl:pt-52 pb-32 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
