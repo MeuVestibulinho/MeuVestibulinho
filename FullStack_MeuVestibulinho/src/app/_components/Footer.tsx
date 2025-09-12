@@ -38,7 +38,7 @@ const footerLinks = {
     { name: "Comunidade", href: "", icon: User },
   ],
   institucional: [
-    { name: "Sobre Nós", href: "" },
+    { name: "Sobre Nós", href: "/sobre" },
     { name: "Como Funciona", href: "" },
     { name: "Depoimentos", href: "" },
   ],
