@@ -28,7 +28,7 @@ const footerLinks = {
   plataforma: [
     { name: "Simulados", href: "", icon: BookOpen },
     { name: "Meu Espaço", href: "", icon: User },
-    { name: "Guia de Estudos", href: "", icon: GraduationCap },
+    { name: "Guia de Estudos", href: "/guia", icon: GraduationCap },
     { name: "Mini Cursos", href: "", icon: Play },
   ],
   recursos: [
