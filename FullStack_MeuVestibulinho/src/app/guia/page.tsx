@@ -1,128 +1,88 @@
-// app/sobre-nos/page.tsx
-"use client";
+'use client';
 
-import * as React from "react";
-import Image from "next/image";
-import { TeamCard } from "../_components/TeamCard";
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 
-type Member = {
-  name: string;
-  course: string;
-  position: string;
-  university: string;
-  photo: string;
-  story: string;
-};
+// Se estiver usando Next.js (App Router), para isso virar uma rota acessível em /guia
+// mova este arquivo para: src/app/guia/page.tsx
+// (um arquivo solto src/app/guia.tsx não gera rota sozinho)
 
-const MEMBERS: Member[] = [
-  {
-    name: "Adhemar Molon",
-    course: "Ciências da Computação",
-    position: "Desenvolvedor",
-    university: "USP - ICMC",
-    photo: "/AdhemarFotoMv.jpeg",
-    story:
-      "Professor voluntário no cursinho popular Pré-ETEC há mais de três anos, fundador e idealizador da plataforma, guiado pela convicção de que transformar o futuro começa pela construção de uma base sólida...",
-  },
-  {
-    name: "Fernando Alee",
-    course: "Ciências da Computação",
-    position: "Desenvolvedor",
-    university: "USP - ICMC",
-    photo: "/team/fernando1.jpg",
-    story:
-      "Apaixonado por produtos educacionais e acessibilidade digital. Curto transformar conteúdo difícil em interfaces simples.",
-  },
-  {
-    name: "Guilherme Torquato",
-    course: "Ciências da Computação",
-    position: "Desenvolvedor",
-    university: "USP - ICMC",
-    photo: "/team/guilherme1.jpg",
-    story:
-      "Foco em front-end performático e animações. Acredito que UX consistente ensina melhor.",
-  },
-  {
-    name: "Pedro Lucas",
-    course: "Ciências da Computação",
-    position: "Desenvolvedor",
-    university: "USP - ICMC",
-    photo: "/team/pedro1.jpg",
-    story:
-      "Curto dados e visualizações. Métricas claras ajudam o aluno a evoluir com propósito.",
-  },
-];
+export default function GuiaPage() {
+    const [hora, setHora] = useState<string>(new Date().toLocaleTimeString());
+    const [mountTime] = useState(() => new Date().toISOString());
 
-export default function SobreNosPage() {
-  return (
-    <main className="min-h-screen pt-24 bg-gradient-to-br from-gray-50 via-white to-red-50">
-      {/* Hero / Título */}
-        <section className="container mx-auto px-4">
-        <div className="relative overflow-hidden rounded-3xl bg-white border border-gray-100 shadow-sm">
-            <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-16 left-24 w-80 h-80 bg-red-500 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 right-16 w-96 h-96 bg-orange-500 rounded-full blur-3xl" />
-            </div>
+    useEffect(() => {
+        const id = setInterval(() => setHora(new Date().toLocaleTimeString()), 1000);
+        return () => clearInterval(id);
+    }, []);
 
-            {/* duas colunas no desktop */}
-            <div className="relative z-10 px-6 py-14 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Texto à esquerda */}
-            <div>
-                <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900">
-                Sobre Nós
-                </h1>
-                <p className="mt-4 max-w-3xl text-lg text-gray-700 leading-relaxed">
-                Somos alunos de <strong>Ciências da Computação</strong> da{" "}
-                <strong>USP/ICMC</strong>. Identificamos uma lacuna na transição
-                do fundamental para o ensino técnico e decidimos construir uma
-                plataforma completa, gratuita e de alta qualidade que guie
-                estudantes passo a passo rumo a oportunidades melhores.
-                </p>
-            </div>
+    return (
+        <main
+            style={{
+                fontFamily: 'system-ui, Arial, sans-serif',
+                padding: '2rem',
+                maxWidth: 720,
+                margin: '0 auto',
+                lineHeight: 1.4,
+            }}
+        >
+            <h1 style={{ marginBottom: '0.25rem' }}>Página Guia</h1>
+            <p style={{ marginTop: 0, color: '#666' }}>
+                Rota genérica para teste (OK se você está vendo isto).
+            </p>
 
-            {/* Imagem à direita */}
-            <div className="relative w-full h-64 sm:h-72 lg:h-80">
-                <Image
-                src="/3ddd348a-adf4-4777-8c73-8d915a684a44.png" // coloque este arquivo em /public
-                alt="Ilustração sobre nós"
-                fill
-                priority
-                sizes="(min-width:1024px) 40vw, 90vw"
-                className="object-contain rounded-2xl shadow-md"
-                />
-            </div>
-            </div>
-        </div>
-        </section>
+            <section
+                style={{
+                    marginTop: '1.5rem',
+                    padding: '1rem 1.25rem',
+                    border: '1px solid #ddd',
+                    borderRadius: 8,
+                    background: '#fafafa',
+                }}
+            >
+                <h2 style={{ marginTop: 0, fontSize: '1.1rem' }}>Status</h2>
+                <ul style={{ paddingLeft: '1.1rem', margin: 0 }}>
+                    <li>Hora atual: {hora}</li>
+                    <li>Montado em: {mountTime}</li>
+                    <li>Environment: {process.env.NODE_ENV}</li>
+                </ul>
+            </section>
 
+            <section style={{ marginTop: '1.5rem' }}>
+                <h3 style={{ marginBottom: '0.5rem' }}>Checklist rápido</h3>
+                <ol style={{ paddingLeft: '1.25rem', margin: 0 }}>
+                    <li>Arquivo está em /src/app/guia/page.tsx ?</li>
+                    <li>Servidor dev rodando? (npm run dev / yarn dev)</li>
+                    <li>Acesse http://localhost:3000/guia</li>
+                    <li>Ver console do navegador (F12) se algo falhar</li>
+                </ol>
+            </section>
 
-      {/* Equipe */}
-      <section className="container mx-auto px-4 mt-14">
-        <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6">
-          Equipe de Desenvolvimento
-        </h2>
+            <section style={{ marginTop: '1.5rem' }}>
+                <Link
+                    href="/"
+                    style={{
+                        display: 'inline-block',
+                        padding: '0.6rem 1rem',
+                        background: '#0d66d0',
+                        color: 'white',
+                        borderRadius: 6,
+                        textDecoration: 'none',
+                    }}
+                >
+                    Voltar para Home
+                </Link>
+            </section>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {MEMBERS.map((m) => (
-            <TeamCard key={m.name} member={m} />
-          ))}
-        </div>
-      </section>
-
-      {/* Motivação */}
-      <section className="container mx-auto px-4 mt-14 mb-24">
-        <div className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl p-8 shadow-sm">
-          <h3 className="text-xl font-bold text-gray-900 mb-3">
-            Nossa Motivação
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Educação transforma trajetórias. Criamos uma experiência focada e
-            guiada, com simulados, trilhas e materiais que realmente fazem
-            diferença. Nosso objetivo:{" "}
-            <strong>fortalecer a base para que mais jovens cheguem ao topo</strong>.
-          </p>
-        </div>
-      </section>
-    </main>
-  );
+            <footer style={{ marginTop: '2.5rem', fontSize: '.75rem', color: '#888' }}>
+                Componente de teste de rota. Edite e salve para ver hot reload.
+            </footer>
+        </main>
+    );
 }
+
+// (Opcional) Metadados se mover para page.tsx
+// export const metadata = {
+//   title: 'Guia | Teste de Rota',
+//   description: 'Página genérica para validar rota.',
+// };
