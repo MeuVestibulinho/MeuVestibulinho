@@ -19,17 +19,13 @@ generator client {
 
 //Diz ao Prisma qual banco usar (Postgres, MySQL, SQLite, etc.) e onde está a conexão:
 datasource db {
-    provider = "sqlite"
+    provider = "postgresql"
     // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
     // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
     url      = env("DATABASE_URL")
 }
-
-// ==========================
-// AUTH MODELS (mantidos)
-// ==========================
 
 // Usuário da aplicação (aluno/professor/admin, etc.)
 model User {
@@ -92,196 +88,10 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ==========================
-// APP MODELS (novos + principais)
-// ==========================
-
-// Enum de dificuldade (usado por Question)
-enum Difficulty {
-  EASY    // Questão de nível fácil
-  MEDIUM  // Questão de nível médio
-  HARD    // Questão de nível difícil
-}
-
-// --- Topic: Tópico principal (ex.: Matemática)
-model Topic {
-  id        String   @id @default(cuid())
-  // Identificador único do tópico.
-
-  name      String   @unique
-  // Nome do tópico (único), ex.: "Matemática".
-
-  createdAt DateTime @default(now())
-  // Data/hora de criação do registro.
-
-  updatedAt DateTime @updatedAt
-  // Atualizado automaticamente a cada update.
-
-  subtopics Subtopic[]
-  // Relação 1:N com Subtopic (lista de subtópicos). Back-relation opcional e segura.
-
-  questions Question[]
-  // Back-relation opcional para listar questões deste tópico.
-}
-
-// --- Subtopic: Subtópico dentro de um Topic (ex.: Frações)
-model Subtopic {
-  id        String   @id @default(cuid())
-  // Identificador único do subtópico.
-
-  name      String
-  // Nome do subtópico, ex.: "Frações".
-
-  topicId   String
-  // FK para Topic.
-
-  createdAt DateTime @default(now())
-  // Data/hora de criação.
-
-  updatedAt DateTime @updatedAt
-  // Atualizado automaticamente a cada update.
-
-  topic     Topic    @relation(fields: [topicId], references: [id])
-  // Relação obrigatória com o Topic pai.
-
-  questions Question[]
-  // Back-relation opcional para listar questões deste subtópico.
-
-  @@index([topicId])
-  // Índice para acelerar filtros por topicId.
-
-  @@unique([topicId, name])
-  // Evita subtópicos duplicados dentro do mesmo tópico.
-}
-
-// --- Tag: Marcadores temáticos/assuntos (N:N com Question)
-model Tag {
-  id        String   @id @default(cuid())
-  // Identificador único da Tag.
-
-  name      String   @unique
-  // Nome da tag (único), ex.: "Frações", "Proporções".
-
-  createdAt DateTime @default(now())
-  // Data/hora de criação.
-
-  updatedAt DateTime @updatedAt
-  // Atualizado automaticamente a cada update.
-
-  questions QuestionTag[]
-  // Back-relation via tabela de junção QuestionTag.
-}
-
-// --- SourceExam: Prova de origem (ex.: ETEC 2023)
-model SourceExam {
-  id        String   @id @default(cuid())
-  // Identificador único da prova de origem.
-
-  name      String
-  // Nome da prova/organizador, ex.: "ETEC", "IFSP".
-
-  year      Int
-  // Ano da prova, ex.: 2023.
-
-  createdAt DateTime @default(now())
-  // Data/hora de criação.
-
-  updatedAt DateTime @updatedAt
-  // Atualizado automaticamente a cada update.
-
-  questions Question[]
-  // Back-relation opcional para listar questões dessa prova.
-
-  @@unique([name, year])
-  // Garante unicidade por organizador+ano (ex.: "ETEC+2023").
-}
-
-// --- Question: a questão em si (enunciado, alternativas, solução, etc.)
-model Question {
-  id            String   @id @default(cuid()) 
-  // Identificador único da questão (gerado automaticamente com cuid).
-
-  statement     String
-  // Enunciado da questão (texto principal apresentado ao aluno).
-
-  choices       Json
-  // Alternativas de resposta (armazenadas em formato JSON, ex.: array de strings
-  // ou objetos com { key: "A", text: "..." }).
-
-  answerKey     String
-  // Gabarito: identifica a alternativa correta (ex.: "A", "B", "C" ou o texto/índice).
-
-  hints         Json?
-  // Dicas/auxílios opcionais para ajudar o aluno (pode conter uma lista em JSON).
-
-  solution      Json?
-  // Solução detalhada/explicação (pode incluir passos, fórmulas ou rich text em JSON).
-
-  difficulty    Difficulty
-  // Nível de dificuldade da questão (EASY, MEDIUM, HARD).
-
-  timeTargetS   Int?
-  // Tempo-alvo em segundos estimado para resolver a questão (opcional).
-
-  isPublic      Boolean  @default(false)
-  // Indica se a questão está liberada (true) ou ainda em staging/oculta (false).
-
-  fingerprint   String   @unique
-  // Hash único (ex.: SHA1 de statement+sourceExam) para idempotência do import (evita duplicatas).
-
-  topicId       String
-  // FK: Tópico principal ao qual a questão pertence.
-
-  subtopicId    String?
-  // FK opcional: Subtópico específico.
-
-  sourceExamId  String?
-  // FK opcional: Prova/ano de origem.
-
-  createdAt     DateTime @default(now())
-  // Data/hora de criação do registro.
-
-  updatedAt     DateTime @updatedAt
-  // Data/hora da última atualização automática.
-
-  topic         Topic     @relation(fields: [topicId], references: [id])
-  // Relação com o Tópico (obrigatória).
-
-  subtopic      Subtopic? @relation(fields: [subtopicId], references: [id])
-  // Relação com o Subtópico (opcional).
-
-  sourceExam    SourceExam? @relation(fields: [sourceExamId], references: [id])
-  // Relação com a Prova de origem (opcional).
-
-  tags          QuestionTag[]
-  // Relação N:N com Tags (intermediada pelo model QuestionTag).
-
-  // Índices para otimizar consultas e filtros:
-  @@index([topicId])
-  @@index([subtopicId])
-  @@index([sourceExamId])
-  @@index([difficulty])
-  @@index([isPublic])
-  @@index([createdAt])
-}
-
-// --- QuestionTag: tabela de junção N:N (Question <-> Tag)
-model QuestionTag {
-  questionId String
-  // ID da questão (chave estrangeira).
-
-  tagId      String
-  // ID da tag (chave estrangeira).
-
-  question   Question @relation(fields: [questionId], references: [id])
-  // Relação com a questão.
-
-  tag        Tag      @relation(fields: [tagId], references: [id])
-  // Relação com a tag.
-
-  @@id([questionId, tagId])
-  // Chave composta que garante unicidade da combinação questão + tag.
-}
 
 // Nesse arquivo definimos as tabelas do banco de dados e seus relacionamentos, que serão usados pelo Prisma Client para fazer consultas ao banco de dados de forma tipada e segura.
 // Cada um desses models vira uma tabela no banco de dados relacional (PostgreSQL, MySQL, SQLite, etc.) e o Prisma Client gera código TypeScript para interagir com essas tabelas de forma fácil e segura.
+
+
+
+
