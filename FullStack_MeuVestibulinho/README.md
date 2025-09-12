@@ -45,3 +45,80 @@ src/
      ├─ page.tsx           # Página inicial (rota "/")
      └─ guia/
          └─ page.tsx       # Página "Guia" (rota "/guia")
+
+
+# Banco de Dados (SQLite) — Setup rápido
+
+## 1) Pré-requisitos
+- Node.js 18+ (projeto em ESM)
+- NPM (ou Yarn/PNPM)
+- Dependências instaladas:
+npm install
+
+## 2) Variáveis de ambiente
+Crie um `.env` na raiz:
+DATABASE_URL="file:./dev.db"
+
+## 3) Configurar seed (ESM)
+No `package.json`, garanta:
+{
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
+Se precisar instalar:
+npm i -D tsx
+
+## 4) Sincronizar schema e gerar Prisma Client
+> **Windows/PowerShell:** rode **um comando por vez** (sem `&&`).
+npx prisma generate
+npx prisma db push
+
+- `db push` cria/sincroniza `dev.db` (SQLite) com o `schema.prisma`.
+- `generate` atualiza o Prisma Client.
+
+## 5) Rodar os seeds
+Executa `seed.base.ts` (tópicos, subtopics, tags, provas) e `seed.demo.ts` (uma questão demo):
+npx prisma db seed
+
+Saída esperada:
+✅ seed.base: tópicos/subtópicos/tags/sourceExam criados/atualizados  
+✅ seed.demo: questão de exemplo criada/atualizada <id>  
+✅ Seed concluído: base + demo
+
+## 6) Conferir no Prisma Studio (opcional)
+npx prisma studio
+
+Abra `http://localhost:5555` e confira:
+- **Topic** (ex.: “Matemática”)
+- **Subtopic** (ex.: “Frações”)
+- **Tag** (ex.: “Frações”)
+- **SourceExam** (ex.: “ETEC 2023”)
+- **Question** (questão demo vinculada)
+
+---
+
+## Troubleshooting
+- **`npm prisma ...` não funciona:** use `npx prisma ...`.
+- **PowerShell não aceita `&&`:** rode cada comando separadamente.
+- **Erro de import no seed:** confirme `"type": "module"` no `package.json` e a chave `"prisma": { "seed": "tsx prisma/seed.ts" }`.
+- **Models não encontrados no seed:** rode `npx prisma generate` após mudanças no `schema.prisma`.
+
+---
+
+## Scripts úteis (opcional)
+Adicionar ao `package.json`:
+{
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio"
+  }
+}
+
+Uso:
+npm run db:generate  
+npm run db:push  
+npm run db:seed  
+npm run db:studio
