@@ -5,7 +5,7 @@ import Image from "next/image";
 import * as React from "react";
 import Link from "next/link";
 import { motion, useAnimation, AnimatePresence } from "motion/react";
-import { BookOpen, User, GraduationCap, Play, Menu, X } from "lucide-react";
+import { BookOpen, User, GraduationCap, Play, Menu, X, Paperclip } from "lucide-react";
 import clsx from "clsx";
 
 const navItems = [
@@ -17,7 +17,7 @@ const navItems = [
   {
     name: "Meu Espaço",
     href: "",
-    icon: User,
+    icon: Paperclip,
   },
   {
     name: "Guia de Estudos",
@@ -28,6 +28,11 @@ const navItems = [
     name: "Mini Cursos",
     href: "/mini-cursos",
     icon: Play,
+  },
+  {
+    name: "Login",
+    href: "/login",
+    icon: User,
   },
 ];
 
