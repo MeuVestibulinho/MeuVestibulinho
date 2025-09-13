@@ -31,7 +31,7 @@ const navItems = [
   },
   {
     name: "Login",
-    href: "/login",
+    href: "http://localhost:3000/api/auth/signin",
     icon: User,
   },
 ];
