@@ -30,9 +30,9 @@ const MEMBERS: Member[] = [
     course: "Ciências da Computação",
     position: "Desenvolvedor",
     university: "USP - ICMC",
-    photo: "/FotoTeam.jpeg",
+    photo: "/eu-edited2.png",
     story:
-      "Apaixonado por produtos educacionais e acessibilidade digital. Curto transformar conteúdo difícil em interfaces simples.",
+      "Ex-aluno da ETEC de Bauru, onde descobri meu gosto por tecnologia e programação. Hoje em dia percebo como a educação técnica pode transformar vidas e abrir portas incríveis. Como desenvolvedor atualmente, busco criar ferramentas que facilitem o acesso à educação de qualidade para outros jovens.",
   },
   {
     name: "Guilherme Torquato",
