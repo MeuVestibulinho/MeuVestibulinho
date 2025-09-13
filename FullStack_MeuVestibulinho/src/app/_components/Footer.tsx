@@ -43,7 +43,7 @@ const footerLinks = {
     { name: "Depoimentos", href: "" },
   ],
   suporte: [
-    { name: "Central de Ajuda", href: "" },
+    { name: "Central de Ajuda", href: "/ajuda" },
     { name: "Contato", href: "" },
     { name: "Política de Privacidade", href: "" },
     { name: "Termos de Uso", href: "" },
