@@ -45,12 +45,15 @@ export function TeamCard({ member }: { member: Member }) {
         </p>
       </div>
 
-      {/* Texto que aparece só no hover */}
+     {/* Texto que aparece só no hover */}
       <div
-        className="absolute inset-0 bg-white/95 backdrop-blur-sm p-6 flex items-center 
-        opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="absolute inset-0 bg-white/95 backdrop-blur-sm p-6 
+                  overflow-y-auto flex items-start 
+                  opacity-0 group-hover:opacity-100 transition-opacity duration-300"
       >
-        <p className="text-sm leading-relaxed text-gray-800">{member.story}</p>
+        <p className="text-sm leading-relaxed text-gray-800 whitespace-normal">
+          {member.story}
+        </p>
       </div>
     </motion.div>
   );

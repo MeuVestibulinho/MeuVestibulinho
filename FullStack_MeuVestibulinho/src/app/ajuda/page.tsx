@@ -1,163 +1,227 @@
-"use client"
+// app/ajuda/page.tsx
+"use client";
 
-import * as React from "react";
-import Link from "next/link";
+import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Search, Mail, MessageSquare, BookOpen, LifeBuoy, ArrowRight } from "lucide-react";
+import {
+  Search, BookOpen, GraduationCap, Timer, Sparkles,
+  Info, MessageCircle, Shield, FileText, ExternalLink
+} from "lucide-react";
 
-export default function AjudaPage() {
-  const [query, setQuery] = React.useState("");
+type Faq = {
+  q: string;
+  a: string;
+  tags: string[];
+  category: "Conta" | "Simulados" | "Guia de Estudos" | "Mini Cursos" | "Geral" | "Privacidade";
+};
 
-  const faqs = [
-    {
-      q: "Como começar a usar a plataforma?",
-      a: "Crie sua conta, acesse o guia de estudos e explore simulados e exercícios.",
-    },
-    {
-      q: "O que é o Guia de Estudos?",
-      a: "É um caminho sugerido com conteúdos e estratégias para te ajudar a se organizar.",
-    },
-    {
-      q: "Posso usar no celular?",
-      a: "Sim, a plataforma é responsiva e funciona bem em dispositivos móveis.",
-    },
+const FAQS: Faq[] = [
+  { q: "Como crio minha conta?", a: "Clique em Entrar/Cadastrar, informe e-mail e senha e confirme. Você pode completar o perfil depois.", tags: ["cadastro","login","conta"], category: "Conta" },
+  { q: "Esqueci minha senha. E agora?", a: "Na tela de login, clique em “Esqueci minha senha” e siga as instruções enviadas ao seu e-mail.", tags: ["senha","recuperar","login"], category: "Conta" },
+  { q: "Como funcionam os simulados personalizados?", a: "Escolha matérias e dificuldade. A prova é montada com timer e histórico salvo para métricas.", tags: ["simulados","personalizado","timer","painel"], category: "Simulados" },
+  { q: "Onde vejo minhas métricas e evolução?", a: "Acesse seu dashboard para acertos por matéria, tempo por questão e evolução diária.", tags: ["métricas","dashboard","desempenho"], category: "Simulados" },
+  { q: "O que é a Trilha de Estudos?", a: "Roteiro sugerido com teoria, questões e revisões, adaptável ao seu ritmo e foco.", tags: ["trilha","planejamento","estudos"], category: "Guia de Estudos" },
+  { q: "Existem mini cursos dos tópicos da prova?", a: "Sim, conteúdos objetivos com teoria essencial e exercícios rápidos para revisão.", tags: ["mini cursos","revisão","teoria"], category: "Mini Cursos" },
+  { q: "Como funcionam os desafios diários (foguinho)?", a: "Conclua ao menos um bloco diário para manter a sequência ativa e ganhar streak.", tags: ["desafios","streak","diário"], category: "Geral" },
+  { q: "Como reporto um erro em uma questão?", a: "Na questão, use “Reportar erro” e descreva o problema. Ou envie pela página /contato.", tags: ["erro","questão","reportar"], category: "Geral" },
+  { q: "Meus dados são usados para quê?", a: "Para personalizar sua experiência, melhorar o site, garantir segurança e comunicar updates. Detalhes na página de política de privacidade.", tags: ["privacidade","dados","lgpd"], category: "Privacidade" },
+  { q: "Onde encontro Termos e Política de Privacidade?", a: "Na página de Termos e Política de Privacidade e também no rodapé do site.", tags: ["termos","política","jurídico"], category: "Geral" },
+];
+
+const ACTIONS = [
+  { title: "Guia de Estudos", desc: "Comece pela trilha sugerida e ajuste ao seu ritmo.", href: "/guia", icon: GraduationCap },
+  { title: "Simulados", desc: "Monte simulados por matéria e dificuldade.", href: "#", icon: BookOpen },
+  { title: "Desafios Diários", desc: "Pratique todo dia e mantenha o foguinho aceso.", href: "#", icon: Sparkles },
+  { title: "Timer de Prova", desc: "Treine com o tempo real do exame.", href: "#", icon: Timer },
+];
+
+export default function CentralDeAjudaPage() {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<"Todas" | Faq["category"]>("Todas");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return FAQS.filter((f) => {
+      const matchesQuery =
+        !q ||
+        f.q.toLowerCase().includes(q) ||
+        f.a.toLowerCase().includes(q) ||
+        f.tags.some((t) => t.toLowerCase().includes(q));
+      const matchesCategory = category === "Todas" || f.category === category;
+      return matchesQuery && matchesCategory;
+    });
+  }, [query, category]);
+
+  const categories: Array<"Todas" | Faq["category"]> = [
+    "Todas","Conta","Simulados","Guia de Estudos","Mini Cursos","Geral","Privacidade",
   ];
 
-  const filteredFaqs = faqs.filter((f) =>
-    (f.q + " " + f.a).toLowerCase().includes(query.toLowerCase())
-  );
-
   return (
-    <main className="relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute -top-16 -left-10 w-96 h-96 bg-red-500 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-500 rounded-full blur-3xl" />
-      </div>
-
-      <section className="container mx-auto px-4 pt-16 pb-12 relative z-10">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
+      <main className="container mx-auto flex-1 px-4 py-24 md:py-32">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-2xl mx-auto"
+          className="mx-auto max-w-6xl"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-red-700 text-sm font-medium">
-            <LifeBuoy size={16} /> Central de Ajuda
+          {/* Header */}
+          <div className="mx-auto max-w-3xl text-center mb-10">
+            <h1 className="text-4xl font-bold text-gray-900">Central de Ajuda</h1>
+            <p className="mt-3 text-gray-600">
+              Encontre respostas rápidas, tutoriais e orientações para aproveitar ao máximo o Meu Vestibulinho.
+            </p>
           </div>
-          <h1 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
-            Tire suas dúvidas e encontre suporte
-          </h1>
-          <p className="mt-3 text-gray-600">
-            Pesquise respostas rápidas ou fale com a gente. Estamos aqui para ajudar.
-          </p>
 
-          <div className="mt-6 max-w-xl mx-auto">
-            <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          {/* Busca + categorias */}
+          <div className="mx-auto mb-8 max-w-3xl">
+            <div className="relative">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Busque por assuntos (ex.: simulados, guia, conta)"
-                className="w-full rounded-xl border border-gray-200 bg-white/80 backdrop-blur px-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent shadow-sm"
+                placeholder="Busque por 'simulados', 'senha', 'trilha'..."
+                className="w-full rounded-2xl border border-gray-300 bg-white px-5 py-4 pr-12 text-gray-900 outline-none ring-red-200 focus:ring-2"
               />
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {categories.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  className={`rounded-full border px-4 py-2 text-sm transition ${
+                    category === c
+                      ? "border-red-500 bg-red-50 text-red-700"
+                      : "border-gray-300 bg-white text-gray-700 hover:border-red-400"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
             </div>
           </div>
-        </motion.div>
-      </section>
 
-      <section className="container mx-auto px-4 pb-24 relative z-10">
-        <div className="mx-auto max-w-4xl">
-          {/* Ações rápidas como pills, sem cartões */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-wrap items-center gap-3"
-          >
-            <Link
-              href="/guia"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 text-sm font-medium hover:opacity-95 transition"
-            >
-              <BookOpen size={16} /> Guia de Estudos
-            </Link>
-            <Link
-              href="mailto:3and3software@gmail.com"
-              className="inline-flex items-center gap-2 rounded-full bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800 transition"
-            >
-              <MessageSquare size={16} /> Fale Conosco
-            </Link>
-            <button
-              type="button"
-              onClick={() => document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" })}
-              className="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur text-gray-800 px-4 py-2 text-sm font-medium border border-gray-200 hover:bg-white transition"
-            >
-              <Mail size={16} /> Dúvidas Frequentes
-            </button>
-          </motion.div>
-
-          {/* Divisor suave */}
-          <div className="my-10 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-
-          {/* Callout em faixa, sem bordas */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-50 via-white to-orange-50"
-          >
-            <div className="absolute -top-10 -left-10 w-72 h-72 bg-red-300/30 blur-3xl rounded-full" />
-            <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-orange-300/30 blur-3xl rounded-full" />
-            <div className="relative p-6 md:p-10">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div>
-                  <h3 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900">
-                    Precisa de ajuda rápida?
-                  </h3>
-                  <p className="mt-2 text-gray-600 max-w-xl">
-                    Envie um e-mail e retornamos o mais rápido possível. Se preferir, consulte o FAQ abaixo.
-                  </p>
+          {/* Ações rápidas */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-10">
+            {ACTIONS.map(({ title, desc, href, icon: Icon }) => (
+              <motion.a
+                key={title}
+                href={href}
+                whileHover={{ y: -3 }}
+                className="block rounded-2xl bg-white p-5 shadow-xl border border-gray-100"
+              >
+                <div className="mb-3 inline-flex rounded-xl bg-gradient-to-br from-red-100 to-orange-100 p-3">
+                  <Icon size={20} className="text-red-600" />
                 </div>
-                <Link
-                  href="mailto:3and3software@gmail.com"
-                  className="inline-flex items-center gap-2 rounded-full bg-gray-900 text-white px-5 py-3 text-sm font-semibold hover:bg-gray-800 transition"
-                >
-                  Falar com suporte <ArrowRight size={16} />
-                </Link>
+                <div className="font-semibold text-gray-900">{title}</div>
+                <div className="text-sm text-gray-600 mt-1">{desc}</div>
+              </motion.a>
+            ))}
+          </div>
+
+          {/* Conteúdo principal: links úteis + FAQs */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Coluna esquerda: links úteis */}
+            <div className="lg:col-span-1 space-y-6">
+              <div className="rounded-3xl bg-white p-6 shadow-xl border border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-yellow-100 p-3">
+                    <Info size={18} className="text-yellow-700" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">Links úteis</h2>
+                </div>
+                <ul className="mt-4 space-y-2 text-sm">
+                  <li>
+                    <a href="/guia" className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50">
+                      Trilha de Estudos
+                      <ExternalLink size={14} className="opacity-50 group-hover:opacity-100" />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/termos" className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50">
+                      Termos de Uso
+                      <FileText size={14} className="opacity-50 group-hover:opacity-100" />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/privacidade" className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50">
+                      Política de Privacidade
+                      <Shield size={14} className="opacity-50 group-hover:opacity-100" />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/contato" className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50">
+                      Fale Conosco
+                      <MessageCircle size={14} className="opacity-50 group-hover:opacity-100" />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Nota LGPD */}
+              <div className="rounded-3xl bg-white p-6 shadow-xl border border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-900">Privacidade e LGPD</h3>
+                <p className="mt-2 text-sm text-gray-600">
+                  Seus dados são tratados para personalizar sua experiência e melhorar a plataforma.
+                  Saiba mais em <a href="/privacidade" className="text-red-600 hover:underline">/privacidade</a>.
+                </p>
               </div>
             </div>
-          </motion.div>
 
-          {/* Divisor suave */}
-          <div className="my-10 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+            {/* Coluna direita: FAQs */}
+            <div className="lg:col-span-2">
+              <div className="rounded-3xl bg-white p-6 shadow-xl border border-gray-100">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Perguntas frequentes</h2>
 
-          {/* FAQ fluido, com separadores e sem caixas */}
-          <motion.div
-            id="faq"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <h3 className="text-lg font-semibold text-gray-900">Dúvidas Frequentes</h3>
-            <p className="text-sm text-gray-600 mt-1">Respostas diretas, sem enrolação.</p>
-            <div className="mt-6 divide-y divide-gray-200/80">
-              {filteredFaqs.map((item, idx) => (
-                <details key={idx} className="group py-4 open:py-4">
-                  <summary className="cursor-pointer select-none list-none font-medium text-gray-800 flex items-center justify-between">
-                    <span>{item.q}</span>
-                    <span className="ml-4 text-gray-400 group-open:rotate-180 transition-transform">⌄</span>
-                  </summary>
-                  <p className="mt-2 text-sm text-gray-600 pr-6">{item.a}</p>
-                </details>
-              ))}
-              {filteredFaqs.length === 0 && (
-                <p className="py-4 text-sm text-gray-500">Nada encontrado para sua busca.</p>
-              )}
+                {filtered.length === 0 && (
+                  <p className="text-sm text-gray-500">
+                    Nada encontrado para “{query}”. Tente outras palavras ou mude a categoria.
+                  </p>
+                )}
+
+                <ul className="divide-y divide-gray-100">
+                  {filtered.map((item, idx) => (
+                    <li key={idx} className="py-3">
+                      <details className="group">
+                        <summary className="cursor-pointer list-none rounded-xl p-3 transition-colors hover:bg-red-50">
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="font-medium text-gray-900">{item.q}</span>
+                            <span className="text-xs text-gray-500">{item.category}</span>
+                          </div>
+                        </summary>
+                        <div className="px-3 pb-3 pt-1 text-gray-700 text-sm leading-relaxed">
+                          {item.a}
+                          {item.tags?.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {item.tags.map((t) => (
+                                <span
+                                  key={t}
+                                  className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600"
+                                >
+                                  #{t}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
-    </main>
+          </div>
+
+          {/* CTA final */}
+          <div className="mt-10 flex flex-col items-center justify-center gap-3">
+            <p className="text-sm text-gray-600">
+              Ao utilizar a plataforma, você concorda com nossos{" "}
+              <a href="/termos" className="text-red-600 hover:underline">Termos de Uso</a> e{" "}
+              <a href="/privacidade" className="text-red-600 hover:underline">Política de Privacidade</a>.
+            </p>
+          </div>
+        </motion.div>
+      </main>
+    </div>
   );
 }
-
-
