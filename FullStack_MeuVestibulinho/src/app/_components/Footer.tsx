@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useInView } from "motion/react";
-import { 
-  BookOpen, 
-  User, 
-  GraduationCap, 
+import {
+  BookOpen,
+  User,
+  GraduationCap,
   Play,
   Mail,
   Phone,
@@ -16,7 +16,7 @@ import {
   Heart,
   ExternalLink,
   ArrowUp,
-  Sparkles
+  Sparkles,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -47,7 +47,7 @@ const footerLinks = {
     { name: "Contato", href: "/contato" },
     { name: "Política de Privacidade", href: "/privacidade" },
     { name: "Termos de Uso", href: "/termos" },
-  ]
+  ],
 };
 
 // Ícone TikTok (SVG) para combinar com o estilo dos ícones do Lucide
@@ -59,12 +59,17 @@ const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
     fill="currentColor"
     {...props}
   >
-    <path d="M14 2v.27A6.73 6.73 0 0 0 20.73 9H21v2.5a8.2 8.2 0 0 1-6.5-2.57V15a5.5 5.5 0 1 1-5.5-5.5h.5V12h-.5a3.5 3.5 0 1 0 3.5 3.5V2h2Z"/>
+    <path d="M14 2v.27A6.73 6.73 0 0 0 20.73 9H21v2.5a8.2 8.2 0 0 1-6.5-2.57V15a5.5 5.5 0 1 1-5.5-5.5h.5V12h-.5a3.5 3.5 0 1 0 3.5 3.5V2h2Z" />
   </svg>
 );
 
 const socialLinks = [
-  { name: "Instagram", href: "#", icon: Instagram, color: "hover:text-pink-500" },
+  {
+    name: "Instagram",
+    href: "#",
+    icon: Instagram,
+    color: "hover:text-pink-500",
+  },
   { name: "TikTok", href: "#", icon: TikTokIcon, color: "hover:text-black" },
 ];
 
@@ -86,10 +91,10 @@ const FooterSection = ({ title, links, delay = 0 }: FooterSectionProps) => {
       transition={{ duration: 0.6, delay, ease: "easeOut" }}
       className="space-y-6"
     >
-      <h3 className="text-lg font-bold text-gray-900 relative">
+      <h3 className="relative text-lg font-bold text-gray-900">
         {title}
         <motion.div
-          className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
+          className="absolute -bottom-1 left-0 h-0.5 rounded-full bg-gradient-to-r from-red-500 to-orange-500"
           initial={{ width: 0 }}
           animate={isInView ? { width: "60%" } : {}}
           transition={{ duration: 0.8, delay: delay + 0.2, ease: "easeOut" }}
@@ -101,19 +106,19 @@ const FooterSection = ({ title, links, delay = 0 }: FooterSectionProps) => {
             key={link.name}
             initial={{ opacity: 0, x: -20 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ 
-              duration: 0.4, 
-              delay: delay + 0.1 * index, 
-              ease: "easeOut" 
+            transition={{
+              duration: 0.4,
+              delay: delay + 0.1 * index,
+              ease: "easeOut",
             }}
           >
             <Link
               href={link.href}
-              className="group flex items-center gap-2 text-gray-600 hover:text-red-600 transition-all duration-300 hover:translate-x-1"
+              className="group flex items-center gap-2 text-gray-600 transition-all duration-300 hover:translate-x-1 hover:text-red-600"
             >
               {link.icon && (
                 <motion.div
-                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   whileHover={{ scale: 1.2, rotate: 10 }}
                 >
                   <link.icon size={14} />
@@ -163,15 +168,17 @@ const ScrollToTop = () => {
     <motion.button
       onClick={scrollToTop}
       className={clsx(
-        "fixed bottom-8 right-8 z-50 p-3 rounded-full bg-gradient-to-br from-red-600 to-orange-600 text-white shadow-lg hover:shadow-2xl transition-all duration-300",
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+        "fixed right-8 bottom-8 z-50 rounded-full bg-gradient-to-br from-red-600 to-orange-600 p-3 text-white shadow-lg transition-all duration-300 hover:shadow-2xl",
+        isVisible
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none translate-y-10 opacity-0",
       )}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
       initial={false}
-      animate={{ 
+      animate={{
         y: isVisible ? 0 : 40,
-        opacity: isVisible ? 1 : 0
+        opacity: isVisible ? 1 : 0,
       }}
       aria-label="Voltar ao topo"
     >
@@ -186,81 +193,85 @@ export const Footer = () => {
 
   return (
     <>
-      <footer ref={ref} className="relative bg-gradient-to-br from-gray-50 via-white to-red-50 overflow-hidden">
+      <footer
+        ref={ref}
+        className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-red-50"
+      >
         {/* Background decoration */}
         <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-red-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-orange-500 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-yellow-400 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 left-20 h-96 w-96 rounded-full bg-red-500 blur-3xl"></div>
+          <div className="absolute right-20 bottom-20 h-80 w-80 rounded-full bg-orange-500 blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-yellow-400 blur-3xl"></div>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="relative z-10 container mx-auto px-4">
           {/* Main Footer Content */}
-          <div className="py-16 border-t border-gray-200">
-            <div className="grid lg:grid-cols-6 gap-12">
+          <div className="border-t border-gray-200 py-16">
+            <div className="grid gap-12 lg:grid-cols-6">
               {/* Brand Section */}
               <motion.div
-                className="lg:col-span-2 space-y-6"
+                className="space-y-6 lg:col-span-2"
                 initial={{ opacity: 0, x: -30 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
                 <Link href="/" className="group inline-flex items-center gap-3">
-                  <motion.div 
+                  <motion.div
                     whileHover={{ scale: 1.05, rotate: 5 }}
                     className="flex items-center"
                   >
-                    <Image 
-                      src="/MeuVestibulinho_Logo.png" 
-                      alt="Logo" 
-                      width={50} 
-                      height={50} 
-                      priority 
+                    <Image
+                      src="/MeuVestibulinho_Logo.png"
+                      alt="Logo"
+                      width={50}
+                      height={50}
+                      priority
                     />
                   </motion.div>
                   <div>
-                    <div className="font-bold text-xl leading-none text-red-600 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-red-600 group-hover:to-orange-600">
+                    <div className="text-xl leading-none font-bold text-red-600 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-red-600 group-hover:to-orange-600 group-hover:bg-clip-text group-hover:text-transparent">
                       Meu
                     </div>
-                    <div className="font-bold text-xl leading-none text-orange-500 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-red-600">
+                    <div className="text-xl leading-none font-bold text-orange-500 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-red-600 group-hover:bg-clip-text group-hover:text-transparent">
                       Vestibulinho
                     </div>
                   </div>
                 </Link>
 
-                <p className="text-gray-600 leading-relaxed">
-                  Plataforma completa para preparação ao vestibulinho da ETEC. 
-                  Criado por alunos, para alunos que sonham com uma educação técnica de qualidade.
+                <p className="leading-relaxed text-gray-600">
+                  Plataforma completa para preparação ao vestibulinho da ETEC.
+                  Criado por alunos, para alunos que sonham com uma educação
+                  técnica de qualidade.
                 </p>
 
                 {/* Contact Info */}
                 <div className="space-y-3">
                   <motion.div
-                    className="flex items-center gap-3 text-gray-600 group"
+                    className="group flex items-center gap-3 text-gray-600"
                     whileHover={{ x: 5 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="p-2 rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors duration-300">
+                    <div className="rounded-lg bg-red-100 p-2 transition-colors duration-300 group-hover:bg-red-200">
                       <Mail size={16} className="text-red-600" />
                     </div>
                     <span suppressHydrationWarning>{EMAIL}</span>
                   </motion.div>
                   <motion.div
-                    className="flex items-center gap-3 text-gray-600 group"
+                    className="group flex items-center gap-3 text-gray-600"
                     whileHover={{ x: 5 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="p-2 rounded-lg bg-orange-100 group-hover:bg-orange-200 transition-colors duration-300">
+                    <div className="rounded-lg bg-orange-100 p-2 transition-colors duration-300 group-hover:bg-orange-200">
                       <Phone size={16} className="text-orange-600" />
                     </div>
                     <span suppressHydrationWarning>{PHONE}</span>
                   </motion.div>
                   <motion.div
-                    className="flex items-center gap-3 text-gray-600 group"
+                    className="group flex items-center gap-3 text-gray-600"
                     whileHover={{ x: 5 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="p-2 rounded-lg bg-yellow-100 group-hover:bg-yellow-200 transition-colors duration-300">
+                    <div className="rounded-lg bg-yellow-100 p-2 transition-colors duration-300 group-hover:bg-yellow-200">
                       <MapPin size={16} className="text-yellow-600" />
                     </div>
                     <span suppressHydrationWarning>{CITY}</span>
@@ -281,8 +292,8 @@ export const Footer = () => {
                         animate={isInView ? { opacity: 1, y: 0 } : {}}
                         transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
                         className={clsx(
-                          "flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-600 transition hover:scale-110 hover:shadow-lg",
-                          social.color
+                          "flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-md transition hover:scale-110 hover:shadow-lg",
+                          social.color,
                         )}
                         aria-label={social.name}
                       >
@@ -294,24 +305,24 @@ export const Footer = () => {
               </motion.div>
 
               {/* Navigation Links */}
-              <FooterSection 
-                title="Plataforma" 
-                links={footerLinks.plataforma} 
+              <FooterSection
+                title="Plataforma"
+                links={footerLinks.plataforma}
                 delay={0.2}
               />
-              <FooterSection 
-                title="Recursos" 
-                links={footerLinks.recursos} 
+              <FooterSection
+                title="Recursos"
+                links={footerLinks.recursos}
                 delay={0.3}
               />
-              <FooterSection 
-                title="Institucional" 
-                links={footerLinks.institucional} 
+              <FooterSection
+                title="Institucional"
+                links={footerLinks.institucional}
                 delay={0.4}
               />
-              <FooterSection 
-                title="Suporte" 
-                links={footerLinks.suporte} 
+              <FooterSection
+                title="Suporte"
+                links={footerLinks.suporte}
                 delay={0.5}
               />
             </div>
@@ -319,44 +330,53 @@ export const Footer = () => {
 
           {/* Bottom Section */}
           <motion.div
-            className="py-8 border-t border-gray-200"
+            className="border-t border-gray-200 py-8"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+            <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
               <div className="flex items-center gap-2 text-gray-600">
                 <span>Feito por estudantes para estudantes</span>
                 <motion.div
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.2, 1],
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 1.5,
                     repeat: Infinity,
-                    repeatType: "loop"
+                    repeatType: "loop",
                   }}
                 >
-                  <Heart size={16} className="text-red-500 fill-current" />
+                  <Heart size={16} className="fill-current text-red-500" />
                 </motion.div>
               </div>
-              
-              <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8 text-sm text-gray-600">
-                <span suppressHydrationWarning>© {new Date().getFullYear()} Meu Vestibulinho. Todos os direitos reservados.</span>
+
+              <div className="flex flex-col items-center gap-4 text-sm text-gray-600 lg:flex-row lg:gap-8">
+                <span suppressHydrationWarning>
+                  © {new Date().getFullYear()} Meu Vestibulinho. Todos os
+                  direitos reservados.
+                </span>
                 <div className="flex items-center gap-4">
-                  <Link 
-                    href="/privacidade" 
-                    className="hover:text-red-600 transition-colors duration-300 flex items-center gap-1 group"
+                  <Link
+                    href="/privacidade"
+                    className="group flex items-center gap-1 transition-colors duration-300 hover:text-red-600"
                   >
                     Privacidade
-                    <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <ExternalLink
+                      size={12}
+                      className="opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    />
                   </Link>
-                  <Link 
-                    href="/termos" 
-                    className="hover:text-red-600 transition-colors duration-300 flex items-center gap-1 group"
+                  <Link
+                    href="/termos"
+                    className="group flex items-center gap-1 transition-colors duration-300 hover:text-red-600"
                   >
                     Termos
-                    <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <ExternalLink
+                      size={12}
+                      className="opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    />
                   </Link>
                 </div>
               </div>

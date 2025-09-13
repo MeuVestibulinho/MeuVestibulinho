@@ -4,35 +4,119 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import {
-  Search, BookOpen, GraduationCap, Timer, Sparkles,
-  Info, MessageCircle, Shield, FileText, ExternalLink
+  Search,
+  BookOpen,
+  GraduationCap,
+  Timer,
+  Sparkles,
+  Info,
+  MessageCircle,
+  Shield,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 
 type Faq = {
   q: string;
   a: string;
   tags: string[];
-  category: "Conta" | "Simulados" | "Guia de Estudos" | "Mini Cursos" | "Geral" | "Privacidade";
+  category:
+    | "Conta"
+    | "Simulados"
+    | "Guia de Estudos"
+    | "Mini Cursos"
+    | "Geral"
+    | "Privacidade";
 };
 
 const FAQS: Faq[] = [
-  { q: "Como crio minha conta?", a: "Clique em Entrar/Cadastrar, informe e-mail e senha e confirme. Você pode completar o perfil depois.", tags: ["cadastro","login","conta"], category: "Conta" },
-  { q: "Esqueci minha senha. E agora?", a: "Na tela de login, clique em “Esqueci minha senha” e siga as instruções enviadas ao seu e-mail.", tags: ["senha","recuperar","login"], category: "Conta" },
-  { q: "Como funcionam os simulados personalizados?", a: "Escolha matérias e dificuldade. A prova é montada com timer e histórico salvo para métricas.", tags: ["simulados","personalizado","timer","painel"], category: "Simulados" },
-  { q: "Onde vejo minhas métricas e evolução?", a: "Acesse seu dashboard para acertos por matéria, tempo por questão e evolução diária.", tags: ["métricas","dashboard","desempenho"], category: "Simulados" },
-  { q: "O que é a Trilha de Estudos?", a: "Roteiro sugerido com teoria, questões e revisões, adaptável ao seu ritmo e foco.", tags: ["trilha","planejamento","estudos"], category: "Guia de Estudos" },
-  { q: "Existem mini cursos dos tópicos da prova?", a: "Sim, conteúdos objetivos com teoria essencial e exercícios rápidos para revisão.", tags: ["mini cursos","revisão","teoria"], category: "Mini Cursos" },
-  { q: "Como funcionam os desafios diários (foguinho)?", a: "Conclua ao menos um bloco diário para manter a sequência ativa e ganhar streak.", tags: ["desafios","streak","diário"], category: "Geral" },
-  { q: "Como reporto um erro em uma questão?", a: "Na questão, use “Reportar erro” e descreva o problema. Ou envie pela página /contato.", tags: ["erro","questão","reportar"], category: "Geral" },
-  { q: "Meus dados são usados para quê?", a: "Para personalizar sua experiência, melhorar o site, garantir segurança e comunicar updates. Detalhes na página de política de privacidade.", tags: ["privacidade","dados","lgpd"], category: "Privacidade" },
-  { q: "Onde encontro Termos e Política de Privacidade?", a: "Na página de Termos e Política de Privacidade e também no rodapé do site.", tags: ["termos","política","jurídico"], category: "Geral" },
+  {
+    q: "Como crio minha conta?",
+    a: "Clique em Entrar/Cadastrar, informe e-mail e senha e confirme. Você pode completar o perfil depois.",
+    tags: ["cadastro", "login", "conta"],
+    category: "Conta",
+  },
+  {
+    q: "Esqueci minha senha. E agora?",
+    a: "Na tela de login, clique em “Esqueci minha senha” e siga as instruções enviadas ao seu e-mail.",
+    tags: ["senha", "recuperar", "login"],
+    category: "Conta",
+  },
+  {
+    q: "Como funcionam os simulados personalizados?",
+    a: "Escolha matérias e dificuldade. A prova é montada com timer e histórico salvo para métricas.",
+    tags: ["simulados", "personalizado", "timer", "painel"],
+    category: "Simulados",
+  },
+  {
+    q: "Onde vejo minhas métricas e evolução?",
+    a: "Acesse seu dashboard para acertos por matéria, tempo por questão e evolução diária.",
+    tags: ["métricas", "dashboard", "desempenho"],
+    category: "Simulados",
+  },
+  {
+    q: "O que é a Trilha de Estudos?",
+    a: "Roteiro sugerido com teoria, questões e revisões, adaptável ao seu ritmo e foco.",
+    tags: ["trilha", "planejamento", "estudos"],
+    category: "Guia de Estudos",
+  },
+  {
+    q: "Existem mini cursos dos tópicos da prova?",
+    a: "Sim, conteúdos objetivos com teoria essencial e exercícios rápidos para revisão.",
+    tags: ["mini cursos", "revisão", "teoria"],
+    category: "Mini Cursos",
+  },
+  {
+    q: "Como funcionam os desafios diários (foguinho)?",
+    a: "Conclua ao menos um bloco diário para manter a sequência ativa e ganhar streak.",
+    tags: ["desafios", "streak", "diário"],
+    category: "Geral",
+  },
+  {
+    q: "Como reporto um erro em uma questão?",
+    a: "Na questão, use “Reportar erro” e descreva o problema. Ou envie pela página /contato.",
+    tags: ["erro", "questão", "reportar"],
+    category: "Geral",
+  },
+  {
+    q: "Meus dados são usados para quê?",
+    a: "Para personalizar sua experiência, melhorar o site, garantir segurança e comunicar updates. Detalhes na página de política de privacidade.",
+    tags: ["privacidade", "dados", "lgpd"],
+    category: "Privacidade",
+  },
+  {
+    q: "Onde encontro Termos e Política de Privacidade?",
+    a: "Na página de Termos e Política de Privacidade e também no rodapé do site.",
+    tags: ["termos", "política", "jurídico"],
+    category: "Geral",
+  },
 ];
 
 const ACTIONS = [
-  { title: "Guia de Estudos", desc: "Comece pela trilha sugerida e ajuste ao seu ritmo.", href: "/guia", icon: GraduationCap },
-  { title: "Simulados", desc: "Monte simulados por matéria e dificuldade.", href: "#", icon: BookOpen },
-  { title: "Desafios Diários", desc: "Pratique todo dia e mantenha o foguinho aceso.", href: "#", icon: Sparkles },
-  { title: "Timer de Prova", desc: "Treine com o tempo real do exame.", href: "#", icon: Timer },
+  {
+    title: "Guia de Estudos",
+    desc: "Comece pela trilha sugerida e ajuste ao seu ritmo.",
+    href: "/guia",
+    icon: GraduationCap,
+  },
+  {
+    title: "Simulados",
+    desc: "Monte simulados por matéria e dificuldade.",
+    href: "#",
+    icon: BookOpen,
+  },
+  {
+    title: "Desafios Diários",
+    desc: "Pratique todo dia e mantenha o foguinho aceso.",
+    href: "#",
+    icon: Sparkles,
+  },
+  {
+    title: "Timer de Prova",
+    desc: "Treine com o tempo real do exame.",
+    href: "#",
+    icon: Timer,
+  },
 ];
 
 export default function CentralDeAjudaPage() {
@@ -53,7 +137,13 @@ export default function CentralDeAjudaPage() {
   }, [query, category]);
 
   const categories: Array<"Todas" | Faq["category"]> = [
-    "Todas","Conta","Simulados","Guia de Estudos","Mini Cursos","Geral","Privacidade",
+    "Todas",
+    "Conta",
+    "Simulados",
+    "Guia de Estudos",
+    "Mini Cursos",
+    "Geral",
+    "Privacidade",
   ];
 
   return (
@@ -66,10 +156,13 @@ export default function CentralDeAjudaPage() {
           className="mx-auto max-w-6xl"
         >
           {/* Header */}
-          <div className="mx-auto max-w-3xl text-center mb-10">
-            <h1 className="text-4xl font-bold text-gray-900">Central de Ajuda</h1>
+          <div className="mx-auto mb-10 max-w-3xl text-center">
+            <h1 className="text-4xl font-bold text-gray-900">
+              Central de Ajuda
+            </h1>
             <p className="mt-3 text-gray-600">
-              Encontre respostas rápidas, tutoriais e orientações para aproveitar ao máximo o Meu Vestibulinho.
+              Encontre respostas rápidas, tutoriais e orientações para
+              aproveitar ao máximo o Meu Vestibulinho.
             </p>
           </div>
 
@@ -80,9 +173,12 @@ export default function CentralDeAjudaPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Busque por 'simulados', 'senha', 'trilha'..."
-                className="w-full rounded-2xl border border-gray-300 bg-white px-5 py-4 pr-12 text-gray-900 outline-none ring-red-200 focus:ring-2"
+                className="w-full rounded-2xl border border-gray-300 bg-white px-5 py-4 pr-12 text-gray-900 ring-red-200 outline-none focus:ring-2"
               />
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400"
+                size={20}
+              />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {categories.map((c) => (
@@ -102,19 +198,19 @@ export default function CentralDeAjudaPage() {
           </div>
 
           {/* Ações rápidas */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-10">
+          <div className="mb-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {ACTIONS.map(({ title, desc, href, icon: Icon }) => (
               <motion.a
                 key={title}
                 href={href}
                 whileHover={{ y: -3 }}
-                className="block rounded-2xl bg-white p-5 shadow-xl border border-gray-100"
+                className="block rounded-2xl border border-gray-100 bg-white p-5 shadow-xl"
               >
                 <div className="mb-3 inline-flex rounded-xl bg-gradient-to-br from-red-100 to-orange-100 p-3">
                   <Icon size={20} className="text-red-600" />
                 </div>
                 <div className="font-semibold text-gray-900">{title}</div>
-                <div className="text-sm text-gray-600 mt-1">{desc}</div>
+                <div className="mt-1 text-sm text-gray-600">{desc}</div>
               </motion.a>
             ))}
           </div>
@@ -122,60 +218,98 @@ export default function CentralDeAjudaPage() {
           {/* Conteúdo principal: links úteis + FAQs */}
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Coluna esquerda: links úteis */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="rounded-3xl bg-white p-6 shadow-xl border border-gray-100">
+            <div className="space-y-6 lg:col-span-1">
+              <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="rounded-xl bg-yellow-100 p-3">
                     <Info size={18} className="text-yellow-700" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900">Links úteis</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Links úteis
+                  </h2>
                 </div>
                 <ul className="mt-4 space-y-2 text-sm">
                   <li>
-                    <a href="/guia" className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50">
+                    <a
+                      href="/guia"
+                      className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50"
+                    >
                       Trilha de Estudos
-                      <ExternalLink size={14} className="opacity-50 group-hover:opacity-100" />
+                      <ExternalLink
+                        size={14}
+                        className="opacity-50 group-hover:opacity-100"
+                      />
                     </a>
                   </li>
                   <li>
-                    <a href="/termos" className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50">
+                    <a
+                      href="/termos"
+                      className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50"
+                    >
                       Termos de Uso
-                      <FileText size={14} className="opacity-50 group-hover:opacity-100" />
+                      <FileText
+                        size={14}
+                        className="opacity-50 group-hover:opacity-100"
+                      />
                     </a>
                   </li>
                   <li>
-                    <a href="/privacidade" className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50">
+                    <a
+                      href="/privacidade"
+                      className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50"
+                    >
                       Política de Privacidade
-                      <Shield size={14} className="opacity-50 group-hover:opacity-100" />
+                      <Shield
+                        size={14}
+                        className="opacity-50 group-hover:opacity-100"
+                      />
                     </a>
                   </li>
                   <li>
-                    <a href="/contato" className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50">
+                    <a
+                      href="/contato"
+                      className="group flex items-center justify-between rounded-xl p-3 hover:bg-red-50"
+                    >
                       Fale Conosco
-                      <MessageCircle size={14} className="opacity-50 group-hover:opacity-100" />
+                      <MessageCircle
+                        size={14}
+                        className="opacity-50 group-hover:opacity-100"
+                      />
                     </a>
                   </li>
                 </ul>
               </div>
 
               {/* Nota LGPD */}
-              <div className="rounded-3xl bg-white p-6 shadow-xl border border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900">Privacidade e LGPD</h3>
+              <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-xl">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Privacidade e LGPD
+                </h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  Seus dados são tratados para personalizar sua experiência e melhorar a plataforma.
-                  Saiba mais em <a href="/privacidade" className="text-red-600 hover:underline">/privacidade</a>.
+                  Seus dados são tratados para personalizar sua experiência e
+                  melhorar a plataforma. Saiba mais em{" "}
+                  <a
+                    href="/privacidade"
+                    className="text-red-600 hover:underline"
+                  >
+                    /privacidade
+                  </a>
+                  .
                 </p>
               </div>
             </div>
 
             {/* Coluna direita: FAQs */}
             <div className="lg:col-span-2">
-              <div className="rounded-3xl bg-white p-6 shadow-xl border border-gray-100">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Perguntas frequentes</h2>
+              <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-xl">
+                <h2 className="mb-4 text-xl font-semibold text-gray-900">
+                  Perguntas frequentes
+                </h2>
 
                 {filtered.length === 0 && (
                   <p className="text-sm text-gray-500">
-                    Nada encontrado para “{query}”. Tente outras palavras ou mude a categoria.
+                    Nada encontrado para “{query}”. Tente outras palavras ou
+                    mude a categoria.
                   </p>
                 )}
 
@@ -185,11 +319,15 @@ export default function CentralDeAjudaPage() {
                       <details className="group">
                         <summary className="cursor-pointer list-none rounded-xl p-3 transition-colors hover:bg-red-50">
                           <div className="flex items-center justify-between gap-4">
-                            <span className="font-medium text-gray-900">{item.q}</span>
-                            <span className="text-xs text-gray-500">{item.category}</span>
+                            <span className="font-medium text-gray-900">
+                              {item.q}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {item.category}
+                            </span>
                           </div>
                         </summary>
-                        <div className="px-3 pb-3 pt-1 text-gray-700 text-sm leading-relaxed">
+                        <div className="px-3 pt-1 pb-3 text-sm leading-relaxed text-gray-700">
                           {item.a}
                           {item.tags?.length > 0 && (
                             <div className="mt-3 flex flex-wrap gap-2">
@@ -216,8 +354,14 @@ export default function CentralDeAjudaPage() {
           <div className="mt-10 flex flex-col items-center justify-center gap-3">
             <p className="text-sm text-gray-600">
               Ao utilizar a plataforma, você concorda com nossos{" "}
-              <a href="/termos" className="text-red-600 hover:underline">Termos de Uso</a> e{" "}
-              <a href="/privacidade" className="text-red-600 hover:underline">Política de Privacidade</a>.
+              <a href="/termos" className="text-red-600 hover:underline">
+                Termos de Uso
+              </a>{" "}
+              e{" "}
+              <a href="/privacidade" className="text-red-600 hover:underline">
+                Política de Privacidade
+              </a>
+              .
             </p>
           </div>
         </motion.div>

@@ -21,7 +21,7 @@ export default function ComunidadePage() {
           initial={{ opacity: 0, y: 36 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mx-auto max-w-5xl rounded-3xl bg-white p-8 md:p-12 shadow-xl border border-gray-100"
+          className="mx-auto max-w-5xl rounded-3xl border border-gray-100 bg-white p-8 shadow-xl md:p-12"
         >
           {/* Header */}
           <div className="flex items-start gap-4">
@@ -29,7 +29,7 @@ export default function ComunidadePage() {
               <Users size={22} className="text-red-600" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">
                 Comunidade Meu Vestibulinho
               </h1>
               <p className="mt-2 text-gray-600">
@@ -44,31 +44,31 @@ export default function ComunidadePage() {
           {/* Redes sociais */}
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             <section className="space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
                 <Instagram size={18} className="text-red-600" />
                 Instagram
               </h2>
-              <p className="text-gray-700 leading-relaxed">
-                Conteúdos rápidos, stories interativos e motivação diária. 
-                Siga e participe enviando dúvidas, respondendo enquetes e
+              <p className="leading-relaxed text-gray-700">
+                Conteúdos rápidos, stories interativos e motivação diária. Siga
+                e participe enviando dúvidas, respondendo enquetes e
                 acompanhando as novidades.
               </p>
               <a
                 href="https://instagram.com/meuvestibulinho"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-red-600 hover:underline text-sm"
+                className="inline-flex items-center gap-2 text-sm text-red-600 hover:underline"
               >
                 Acessar Instagram <ExternalLink size={14} />
               </a>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
                 <Music size={18} className="text-red-600" />
                 TikTok
               </h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="leading-relaxed text-gray-700">
                 Dicas em vídeo curto, macetes de prova, desafios e lives com a
                 comunidade. O TikTok é onde o aprendizado encontra o
                 entretenimento — perfeito para manter o ritmo.
@@ -77,7 +77,7 @@ export default function ComunidadePage() {
                 href="https://tiktok.com/@meuvestibulinho"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-red-600 hover:underline text-sm"
+                className="inline-flex items-center gap-2 text-sm text-red-600 hover:underline"
               >
                 Acessar TikTok <ExternalLink size={14} />
               </a>
@@ -87,34 +87,35 @@ export default function ComunidadePage() {
           {/* Propósito da comunidade */}
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             <section className="space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <GraduationCap size={18} className="text-red-600" />
-                O universo ETEC
+              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
+                <GraduationCap size={18} className="text-red-600" />O universo
+                ETEC
               </h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="leading-relaxed text-gray-700">
                 Todos os anos, milhares de estudantes se inscrevem para o{" "}
                 <strong>Vestibulinho ETEC</strong>. São dezenas de milhares de
                 vagas disputadas, com uma base de candidatos que cresce a cada
                 edição.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="leading-relaxed text-gray-700">
                 Destes, uma grande parcela busca preparação estruturada. É esse
-                público — <strong>quem quer transformar sua base em futuro</strong> —
-                que queremos alcançar e reunir.
+                público —{" "}
+                <strong>quem quer transformar sua base em futuro</strong> — que
+                queremos alcançar e reunir.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
                 <Target size={18} className="text-red-600" />
                 Nosso objetivo
               </h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="leading-relaxed text-gray-700">
                 Criar um espaço digital onde cada aluno se sinta parte de algo
                 maior. Ao compartilhar dúvidas, vitórias e estratégias, todos
                 crescem juntos.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="leading-relaxed text-gray-700">
                 O <strong>Meu Vestibulinho</strong> nasceu com a missão de
                 democratizar a preparação e alcançar milhares de jovens para
                 compor essa comunidade de transformação.
@@ -124,7 +125,7 @@ export default function ComunidadePage() {
 
           {/* Chamada final */}
           <div className="mt-10 rounded-2xl border border-gray-200 p-6 text-center">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center justify-center gap-2">
+            <h3 className="flex items-center justify-center gap-2 text-lg font-semibold text-gray-900">
               <Sparkles size={18} className="text-red-600" />
               Junte-se à comunidade
             </h3>

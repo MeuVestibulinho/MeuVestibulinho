@@ -4,8 +4,6 @@ import * as React from "react";
 import Image from "next/image";
 import { TeamCard } from "../_components/TeamCard";
 
-
-
 type Member = {
   name: string;
   course: string;
@@ -56,50 +54,49 @@ const MEMBERS: Member[] = [
 
 export default function SobreNosPage() {
   return (
-    <main className="min-h-screen pt-24 bg-gradient-to-br from-gray-50 via-white to-red-50">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-red-50 pt-24">
       {/* Hero / Título */}
-        <section className="container mx-auto px-4">
-        <div className="relative overflow-hidden rounded-3xl bg-white border border-gray-100 shadow-sm">
-            <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-16 left-24 w-80 h-80 bg-red-500 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 right-16 w-96 h-96 bg-orange-500 rounded-full blur-3xl" />
-            </div>
+      <section className="container mx-auto px-4">
+        <div className="relative overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-16 left-24 h-80 w-80 rounded-full bg-red-500 blur-3xl" />
+            <div className="absolute right-16 -bottom-10 h-96 w-96 rounded-full bg-orange-500 blur-3xl" />
+          </div>
 
-            {/* duas colunas no desktop */}
-            <div className="relative z-10 px-6 py-14 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          {/* duas colunas no desktop */}
+          <div className="relative z-10 grid grid-cols-1 items-center gap-8 px-6 py-14 lg:grid-cols-2 lg:px-12">
             {/* Texto à esquerda */}
             <div>
-                <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900">
+              <h1 className="text-3xl font-extrabold text-gray-900 lg:text-4xl">
                 Sobre Nós
-                </h1>
-                <p className="mt-4 max-w-3xl text-lg text-gray-700 leading-relaxed">
+              </h1>
+              <p className="mt-4 max-w-3xl text-lg leading-relaxed text-gray-700">
                 Somos alunos de <strong>Ciências da Computação</strong> da{" "}
                 <strong>USP/ICMC</strong>. Identificamos uma lacuna na transição
                 do fundamental para o ensino técnico e decidimos construir uma
                 plataforma completa, gratuita e de alta qualidade que guie
                 estudantes passo a passo rumo a oportunidades melhores.
-                </p>
+              </p>
             </div>
 
             {/* Imagem à direita */}
-            <div className="relative w-full h-64 sm:h-72 lg:h-80">
-                <Image
-                src="/FotoTeam.jpeg" 
+            <div className="relative h-64 w-full sm:h-72 lg:h-80">
+              <Image
+                src="/FotoTeam.jpeg"
                 alt="Ilustração sobre nós"
                 fill
                 priority
                 sizes="(min-width:1024px) 40vw, 90vw"
-                className="object-contain rounded-2xl shadow-md"
-                />
+                className="rounded-2xl object-contain shadow-md"
+              />
             </div>
-            </div>
+          </div>
         </div>
-        </section>
-
+      </section>
 
       {/* Equipe */}
-      <section className="container mx-auto px-4 mt-14">
-        <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6">
+      <section className="container mx-auto mt-14 px-4">
+        <h2 className="mb-6 text-2xl font-bold text-gray-900 lg:text-3xl">
           Equipe de Desenvolvimento
         </h2>
 
@@ -111,16 +108,19 @@ export default function SobreNosPage() {
       </section>
 
       {/* Motivação */}
-      <section className="container mx-auto px-4 mt-14 mb-24">
-        <div className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl p-8 shadow-sm">
-          <h3 className="text-xl font-bold text-gray-900 mb-3">
+      <section className="container mx-auto mt-14 mb-24 px-4">
+        <div className="rounded-2xl border border-gray-100 bg-white/80 p-8 shadow-sm backdrop-blur-sm">
+          <h3 className="mb-3 text-xl font-bold text-gray-900">
             Nossa Motivação
           </h3>
-          <p className="text-gray-700 leading-relaxed">
+          <p className="leading-relaxed text-gray-700">
             Educação transforma trajetórias. Criamos uma experiência focada e
             guiada, com simulados, trilhas e materiais que realmente fazem
             diferença. Nosso objetivo:{" "}
-            <strong>fortalecer a base para que mais jovens cheguem ao topo</strong>.
+            <strong>
+              fortalecer a base para que mais jovens cheguem ao topo
+            </strong>
+            .
           </p>
         </div>
       </section>

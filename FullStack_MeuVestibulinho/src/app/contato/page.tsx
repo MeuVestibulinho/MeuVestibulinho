@@ -29,9 +29,9 @@ export default function ContatoPage() {
     try {
       // Fallback com mailto enquanto não existe API
       const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent(
-        assunto || `Contato de ${nome}`
+        assunto || `Contato de ${nome}`,
       )}&body=${encodeURIComponent(
-        `Nome: ${nome}\nE-mail: ${email}\n\nMensagem:\n${mensagem}`
+        `Nome: ${nome}\nE-mail: ${email}\n\nMensagem:\n${mensagem}`,
       )}`;
       window.location.href = mailto;
     } finally {
@@ -49,9 +49,9 @@ export default function ContatoPage() {
           className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-5"
         >
           {/* Coluna esquerda: informações */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-3xl shadow-xl p-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <div className="space-y-6 lg:col-span-2">
+            <div className="rounded-3xl bg-white p-8 shadow-xl">
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
                 Fale com a gente
               </h1>
               <p className="text-gray-600">
@@ -61,47 +61,47 @@ export default function ContatoPage() {
 
               <div className="mt-8 space-y-4 text-gray-700">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-red-100">
+                  <div className="rounded-lg bg-red-100 p-2">
                     <Mail size={18} className="text-red-600" />
                   </div>
                   <a
                     href={`mailto:${EMAIL}`}
-                    className="hover:text-red-600 transition-colors"
+                    className="transition-colors hover:text-red-600"
                   >
                     {EMAIL}
                   </a>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-orange-100">
+                  <div className="rounded-lg bg-orange-100 p-2">
                     <Phone size={18} className="text-orange-600" />
                   </div>
                   <a
                     href={`https://wa.me/55${PHONE.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-red-600 transition-colors"
+                    className="transition-colors hover:text-red-600"
                   >
                     {PHONE}
                   </a>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-yellow-100">
+                  <div className="rounded-lg bg-yellow-100 p-2">
                     <MapPin size={18} className="text-yellow-600" />
                   </div>
                   <span>{CITY}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-pink-100">
+                  <div className="rounded-lg bg-pink-100 p-2">
                     <Instagram size={18} className="text-pink-600" />
                   </div>
                   <a
                     href={INSTAGRAM}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-red-600 transition-colors"
+                    className="transition-colors hover:text-red-600"
                   >
                     Instagram
                   </a>
@@ -114,17 +114,16 @@ export default function ContatoPage() {
                   <span className="font-medium text-gray-800">
                     nome completo
                   </span>
-                  ,{" "}
-                  <span className="font-medium text-gray-800">série/ano</span> e
-                  uma breve descrição do problema/sugestão para agilizar o
+                  , <span className="font-medium text-gray-800">série/ano</span>{" "}
+                  e uma breve descrição do problema/sugestão para agilizar o
                   atendimento.
                 </p>
               </div>
             </div>
 
             {/* FAQ enxuta (opcional) */}
-            <div className="bg-white rounded-3xl shadow-xl p-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <div className="rounded-3xl bg-white p-8 shadow-xl">
+              <h2 className="mb-4 text-xl font-semibold text-gray-900">
                 Dúvidas rápidas
               </h2>
               <ul className="space-y-3 text-gray-700">
@@ -134,8 +133,8 @@ export default function ContatoPage() {
                       Não consigo acessar minha conta
                     </summary>
                     <div className="px-3 pb-3 text-sm text-gray-600">
-                      Verifique se o e-mail e a senha estão corretos.
-                      Se persistir, nos envie seu e-mail cadastrado.
+                      Verifique se o e-mail e a senha estão corretos. Se
+                      persistir, nos envie seu e-mail cadastrado.
                     </div>
                   </details>
                 </li>
@@ -156,11 +155,11 @@ export default function ContatoPage() {
 
           {/* Coluna direita: formulário */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-3xl shadow-xl p-8">
+            <div className="rounded-3xl bg-white p-8 shadow-xl">
               <h2 className="text-2xl font-semibold text-gray-900">
                 Envie uma mensagem
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="mb-6 text-gray-600">
                 Responderemos no seu e-mail. Campos marcados com * são
                 obrigatórios.
               </p>
@@ -177,7 +176,7 @@ export default function ContatoPage() {
                       onChange={(e) => setNome(e.target.value)}
                       placeholder="Seu nome completo"
                       required
-                      className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none ring-red-200 focus:ring-2"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 ring-red-200 outline-none focus:ring-2"
                     />
                   </div>
                   <div>
@@ -190,7 +189,7 @@ export default function ContatoPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="voce@email.com"
                       required
-                      className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none ring-red-200 focus:ring-2"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 ring-red-200 outline-none focus:ring-2"
                     />
                   </div>
                 </div>
@@ -204,7 +203,7 @@ export default function ContatoPage() {
                     value={assunto}
                     onChange={(e) => setAssunto(e.target.value)}
                     placeholder="Ex.: Dúvida sobre simulados"
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none ring-red-200 focus:ring-2"
+                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 ring-red-200 outline-none focus:ring-2"
                   />
                 </div>
 
@@ -218,7 +217,7 @@ export default function ContatoPage() {
                     placeholder="Conte-nos como podemos ajudar"
                     required
                     rows={6}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none ring-red-200 focus:ring-2"
+                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 ring-red-200 outline-none focus:ring-2"
                   />
                 </div>
 
@@ -249,8 +248,8 @@ export default function ContatoPage() {
 
             {/* Aviso de LGPD / Privacidade */}
             <p className="mt-4 text-xs text-gray-500">
-              Tratamos seus dados pessoais conforme a LGPD para responder ao
-              seu contato e melhorar nossos serviços. Saiba mais em{" "}
+              Tratamos seus dados pessoais conforme a LGPD para responder ao seu
+              contato e melhorar nossos serviços. Saiba mais em{" "}
               <a href="/privacidade" className="text-red-600 hover:underline">
                 Política de Privacidade
               </a>

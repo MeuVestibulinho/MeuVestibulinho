@@ -1,5 +1,3 @@
-
-
 // importa o módulo "server-only" do Next.js para garantir que este código seja executado apenas no servidor
 import "server-only";
 
@@ -29,7 +27,8 @@ const createContext = cache(async () => {
   const heads = new Headers(await headers()); // Cria um novo objeto Headers a partir dos cabeçalhos da requisição HTTP
   heads.set("x-trpc-source", "rsc"); // Adiciona um cabeçalho personalizado para identificar a origem da requisição
 
-  return createTRPCContext({ // Passa o objeto de cabeçalhos HTTP para a função de criação do contexto
+  return createTRPCContext({
+    // Passa o objeto de cabeçalhos HTTP para a função de criação do contexto
     headers: heads, // headers são informações adicionais enviadas na requisição HTTP, como tokens de autenticação, tipo de conteúdo, etc.
   });
 });
@@ -42,10 +41,8 @@ const caller = createCaller(createContext); // Cria o caller do TRPC usando a fu
 
 export const { trpc: api, HydrateClient } = createHydrationHelpers<AppRouter>(
   caller,
-  getQueryClient
+  getQueryClient,
 );
-
-
 
 // Nesse arquivo definimos o cliente TRPC para ser usado em componentes React no servidor
 // Ele importa o roteador principal do TRPC, a função para criar o contexto do TRPC e o QueryClient do React Query

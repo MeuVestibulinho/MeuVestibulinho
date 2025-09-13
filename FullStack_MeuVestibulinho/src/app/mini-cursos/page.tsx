@@ -3,8 +3,17 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import {
-  Search, BookOpen, Clock, Users, Star, Play, 
-  Filter, ChevronDown, CheckCircle, Lock, Award
+  Search,
+  BookOpen,
+  Clock,
+  Users,
+  Star,
+  Play,
+  Filter,
+  ChevronDown,
+  CheckCircle,
+  Lock,
+  Award,
 } from "lucide-react";
 
 type Course = {
@@ -13,7 +22,13 @@ type Course = {
   description: string;
   duration: string;
   level: "Iniciante" | "Intermediário" | "Avançado";
-  category: "Matemática" | "Português" | "História" | "Geografia" | "Ciências" | "Redação";
+  category:
+    | "Matemática"
+    | "Português"
+    | "História"
+    | "Geografia"
+    | "Ciências"
+    | "Redação";
   rating: number;
   students: number;
   isCompleted?: boolean;
@@ -27,7 +42,8 @@ const COURSES: Course[] = [
   {
     id: "1",
     title: "Matemática Básica para ETEC",
-    description: "Conceitos fundamentais de matemática essenciais para o vestibulinho da ETEC",
+    description:
+      "Conceitos fundamentais de matemática essenciais para o vestibulinho da ETEC",
     duration: "2h 30min",
     level: "Iniciante",
     category: "Matemática",
@@ -37,12 +53,13 @@ const COURSES: Course[] = [
     isLocked: false,
     thumbnail: "/foto-hero.jpg",
     lessons: 12,
-    progress: 0
+    progress: 0,
   },
   {
     id: "2",
     title: "Interpretação de Texto",
-    description: "Técnicas para melhorar sua compreensão e interpretação de textos",
+    description:
+      "Técnicas para melhorar sua compreensão e interpretação de textos",
     duration: "1h 45min",
     level: "Iniciante",
     category: "Português",
@@ -52,12 +69,13 @@ const COURSES: Course[] = [
     isLocked: false,
     thumbnail: "/foto-hero.jpg",
     lessons: 8,
-    progress: 100
+    progress: 100,
   },
   {
     id: "3",
     title: "História do Brasil - República",
-    description: "Período republicano brasileiro com foco nos principais acontecimentos",
+    description:
+      "Período republicano brasileiro com foco nos principais acontecimentos",
     duration: "3h 15min",
     level: "Intermediário",
     category: "História",
@@ -67,7 +85,7 @@ const COURSES: Course[] = [
     isLocked: false,
     thumbnail: "/foto-hero.jpg",
     lessons: 15,
-    progress: 40
+    progress: 40,
   },
   {
     id: "4",
@@ -82,7 +100,7 @@ const COURSES: Course[] = [
     isLocked: false,
     thumbnail: "/foto-hero.jpg",
     lessons: 10,
-    progress: 0
+    progress: 0,
   },
   {
     id: "5",
@@ -97,7 +115,7 @@ const COURSES: Course[] = [
     isLocked: true,
     thumbnail: "/foto-hero.jpg",
     lessons: 18,
-    progress: 0
+    progress: 0,
   },
   {
     id: "6",
@@ -112,26 +130,21 @@ const COURSES: Course[] = [
     isLocked: false,
     thumbnail: "/foto-hero.jpg",
     lessons: 14,
-    progress: 0
-  }
+    progress: 0,
+  },
 ];
 
 const CATEGORIES = [
   "Todas",
   "Matemática",
-  "Português", 
+  "Português",
   "História",
   "Geografia",
   "Ciências",
-  "Redação"
+  "Redação",
 ];
 
-const LEVELS = [
-  "Todos",
-  "Iniciante",
-  "Intermediário", 
-  "Avançado"
-];
+const LEVELS = ["Todos", "Iniciante", "Intermediário", "Avançado"];
 
 export default function MiniCursosPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -141,17 +154,17 @@ export default function MiniCursosPage() {
 
   const filteredCourses = useMemo(() => {
     return COURSES.filter((course) => {
-      const matchesSearch = 
+      const matchesSearch =
         !searchQuery ||
         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesCategory = 
+
+      const matchesCategory =
         selectedCategory === "Todas" || course.category === selectedCategory;
-      
-      const matchesLevel = 
+
+      const matchesLevel =
         selectedLevel === "Todos" || course.level === selectedLevel;
-      
+
       return matchesSearch && matchesCategory && matchesLevel;
     });
   }, [searchQuery, selectedCategory, selectedLevel]);
@@ -198,18 +211,19 @@ export default function MiniCursosPage() {
           className="mx-auto max-w-7xl"
         >
           {/* Header */}
-          <div className="mx-auto max-w-4xl text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <div className="mx-auto mb-12 max-w-4xl text-center">
+            <h1 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">
               Mini Cursos
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              Conteúdos objetivos e práticos para revisar os principais tópicos do vestibulinho da ETEC
+            <p className="text-xl leading-relaxed text-gray-600">
+              Conteúdos objetivos e práticos para revisar os principais tópicos
+              do vestibulinho da ETEC
             </p>
           </div>
 
           {/* Search and Filters */}
           <div className="mb-8">
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row">
               {/* Search Bar */}
               <div className="relative flex-1">
                 <input
@@ -217,9 +231,12 @@ export default function MiniCursosPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar mini-cursos..."
-                  className="w-full rounded-2xl border border-gray-300 bg-white px-5 py-4 pr-12 text-gray-900 outline-none ring-red-200 focus:ring-2"
+                  className="w-full rounded-2xl border border-gray-300 bg-white px-5 py-4 pr-12 text-gray-900 ring-red-200 outline-none focus:ring-2"
                 />
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Search
+                  className="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
               </div>
 
               {/* Filter Toggle */}
@@ -227,13 +244,13 @@ export default function MiniCursosPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-6 py-4 rounded-2xl border border-gray-300 bg-white text-gray-700 hover:border-red-400 transition-colors"
+                className="flex items-center gap-2 rounded-2xl border border-gray-300 bg-white px-6 py-4 text-gray-700 transition-colors hover:border-red-400"
               >
                 <Filter size={18} />
                 <span>Filtros</span>
-                <ChevronDown 
-                  size={16} 
-                  className={`transition-transform ${showFilters ? 'rotate-180' : ''}`}
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform ${showFilters ? "rotate-180" : ""}`}
                 />
               </motion.button>
             </div>
@@ -241,24 +258,26 @@ export default function MiniCursosPage() {
             {/* Filters */}
             <motion.div
               initial={false}
-              animate={{ 
+              animate={{
                 height: showFilters ? "auto" : 0,
-                opacity: showFilters ? 1 : 0
+                opacity: showFilters ? 1 : 0,
               }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-                <div className="grid md:grid-cols-2 gap-6">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="grid gap-6 md:grid-cols-2">
                   {/* Category Filter */}
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-3">Categoria</h3>
+                    <h3 className="mb-3 font-semibold text-gray-900">
+                      Categoria
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                       {CATEGORIES.map((category) => (
                         <button
                           key={category}
                           onClick={() => setSelectedCategory(category)}
-                          className={`px-4 py-2 rounded-full text-sm transition ${
+                          className={`rounded-full px-4 py-2 text-sm transition ${
                             selectedCategory === category
                               ? "bg-red-500 text-white"
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -272,13 +291,13 @@ export default function MiniCursosPage() {
 
                   {/* Level Filter */}
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-3">Nível</h3>
+                    <h3 className="mb-3 font-semibold text-gray-900">Nível</h3>
                     <div className="flex flex-wrap gap-2">
                       {LEVELS.map((level) => (
                         <button
                           key={level}
                           onClick={() => setSelectedLevel(level)}
-                          className={`px-4 py-2 rounded-full text-sm transition ${
+                          className={`rounded-full px-4 py-2 text-sm transition ${
                             selectedLevel === level
                               ? "bg-orange-500 text-white"
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -304,18 +323,20 @@ export default function MiniCursosPage() {
                 transition={{ delay: index * 0.1, duration: 0.5 }}
                 className="group relative"
               >
-                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
                   {/* Course Thumbnail */}
                   <div className="relative h-48 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-100 to-orange-100" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-6xl">{getCategoryIcon(course.category)}</span>
+                      <span className="text-6xl">
+                        {getCategoryIcon(course.category)}
+                      </span>
                     </div>
-                    
+
                     {/* Progress Bar */}
                     {course.progress !== undefined && course.progress > 0 && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
-                        <div 
+                      <div className="absolute right-0 bottom-0 left-0 h-1 bg-gray-200">
+                        <div
                           className="h-full bg-gradient-to-r from-red-500 to-orange-500 transition-all duration-500"
                           style={{ width: `${course.progress}%` }}
                         />
@@ -325,12 +346,12 @@ export default function MiniCursosPage() {
                     {/* Status Icons */}
                     <div className="absolute top-4 right-4 flex gap-2">
                       {course.isCompleted && (
-                        <div className="bg-green-500 text-white p-2 rounded-full">
+                        <div className="rounded-full bg-green-500 p-2 text-white">
                           <CheckCircle size={16} />
                         </div>
                       )}
                       {course.isLocked && (
-                        <div className="bg-gray-500 text-white p-2 rounded-full">
+                        <div className="rounded-full bg-gray-500 p-2 text-white">
                           <Lock size={16} />
                         </div>
                       )}
@@ -338,7 +359,9 @@ export default function MiniCursosPage() {
 
                     {/* Level Badge */}
                     <div className="absolute top-4 left-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getLevelColor(course.level)}`}>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${getLevelColor(course.level)}`}
+                      >
                         {course.level}
                       </span>
                     </div>
@@ -346,18 +369,18 @@ export default function MiniCursosPage() {
 
                   {/* Course Content */}
                   <div className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-red-600 transition-colors">
+                    <div className="mb-3 flex items-start justify-between">
+                      <h3 className="text-xl font-bold text-gray-900 transition-colors group-hover:text-red-600">
                         {course.title}
                       </h3>
                     </div>
 
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    <p className="mb-4 line-clamp-2 text-sm text-gray-600">
                       {course.description}
                     </p>
 
                     {/* Course Stats */}
-                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                    <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Clock size={14} />
                         <span>{course.duration}</span>
@@ -373,7 +396,7 @@ export default function MiniCursosPage() {
                     </div>
 
                     {/* Rating */}
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="mb-4 flex items-center gap-2">
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (
                           <Star
@@ -381,7 +404,7 @@ export default function MiniCursosPage() {
                             size={16}
                             className={`${
                               i < Math.floor(course.rating)
-                                ? "text-yellow-400 fill-current"
+                                ? "fill-current text-yellow-400"
                                 : "text-gray-300"
                             }`}
                           />
@@ -397,12 +420,12 @@ export default function MiniCursosPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       disabled={course.isLocked}
-                      className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-300 ${
+                      className={`w-full rounded-xl px-4 py-3 font-medium transition-all duration-300 ${
                         course.isLocked
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          ? "cursor-not-allowed bg-gray-100 text-gray-400"
                           : course.isCompleted
-                          ? "bg-green-500 text-white hover:bg-green-600"
-                          : "bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
+                            ? "bg-green-500 text-white hover:bg-green-600"
+                            : "bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
                       }`}
                     >
                       {course.isLocked ? (
@@ -438,13 +461,13 @@ export default function MiniCursosPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12"
+              className="py-12 text-center"
             >
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <div className="mb-4 text-6xl">🔍</div>
+              <h3 className="mb-2 text-xl font-semibold text-gray-900">
                 Nenhum mini-curso encontrado
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="mb-6 text-gray-600">
                 Tente ajustar os filtros ou termos de busca
               </p>
               <button
@@ -453,7 +476,7 @@ export default function MiniCursosPage() {
                   setSelectedCategory("Todas");
                   setSelectedLevel("Todos");
                 }}
-                className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
+                className="rounded-xl bg-red-500 px-6 py-3 text-white transition-colors hover:bg-red-600"
               >
                 Limpar filtros
               </button>
@@ -467,25 +490,26 @@ export default function MiniCursosPage() {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="mt-16 text-center"
           >
-            <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-3xl p-8 md:p-12 text-white">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <div className="rounded-3xl bg-gradient-to-r from-red-500 to-orange-500 p-8 text-white md:p-12">
+              <h2 className="mb-4 text-3xl font-bold md:text-4xl">
                 Pronto para começar?
               </h2>
-              <p className="text-xl mb-6 opacity-90">
-                Acesse todos os mini-cursos e prepare-se para o vestibulinho da ETEC
+              <p className="mb-6 text-xl opacity-90">
+                Acesse todos os mini-cursos e prepare-se para o vestibulinho da
+                ETEC
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col justify-center gap-4 sm:flex-row">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 bg-white text-red-600 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                  className="rounded-xl bg-white px-8 py-4 font-semibold text-red-600 transition-colors hover:bg-gray-100"
                 >
                   Ver Trilha de Estudos
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white hover:text-red-600 transition-colors"
+                  className="rounded-xl border-2 border-white px-8 py-4 font-semibold text-white transition-colors hover:bg-white hover:text-red-600"
                 >
                   Fazer Simulado
                 </motion.button>

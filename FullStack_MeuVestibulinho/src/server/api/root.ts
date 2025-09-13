@@ -1,4 +1,3 @@
-
 // importa o roteador de postagens definido em outro arquivo, que contém várias rotas (queries e mutations) relacionadas a postagens
 import { postRouter } from "~/server/api/routers/post";
 // importa funções para criar o roteador TRPC e o caller do servidor, que permite fazer chamadas às rotas do TRPC no backend

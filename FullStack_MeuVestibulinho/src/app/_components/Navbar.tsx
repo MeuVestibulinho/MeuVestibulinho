@@ -1,18 +1,11 @@
-"use client"
+"use client";
 
 import Image from "next/image";
 
 import * as React from "react";
 import Link from "next/link";
 import { motion, useAnimation, AnimatePresence } from "motion/react";
-import { 
-  BookOpen, 
-  User, 
-  GraduationCap, 
-  Play, 
-  Menu, 
-  X
-} from "lucide-react";
+import { BookOpen, User, GraduationCap, Play, Menu, X } from "lucide-react";
 import clsx from "clsx";
 
 const navItems = [
@@ -35,11 +28,11 @@ const navItems = [
     name: "Mini Cursos",
     href: "/mini-cursos",
     icon: Play,
-  }
+  },
 ];
 
 interface NavItemProps {
-  item: typeof navItems[0];
+  item: (typeof navItems)[0];
   isMobile?: boolean;
   onClose?: () => void;
 }
@@ -53,7 +46,7 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
     void controls.start({
       scale: 1.05,
       y: -2,
-      transition: { type: "spring", stiffness: 400, damping: 25 }
+      transition: { type: "spring", stiffness: 400, damping: 25 },
     });
   };
 
@@ -62,7 +55,7 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
     void controls.start({
       scale: 1,
       y: 0,
-      transition: { type: "spring", stiffness: 400, damping: 25 }
+      transition: { type: "spring", stiffness: 400, damping: 25 },
     });
   };
 
@@ -70,16 +63,13 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
 
   if (isMobile) {
     return (
-      <motion.div
-        whileTap={{ scale: 0.95 }}
-        className="w-full"
-      >
+      <motion.div whileTap={{ scale: 0.95 }} className="w-full">
         <Link
           href={item.href}
           onClick={onClose}
-          className="flex items-center gap-4 p-4 rounded-xl hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50 transition-all duration-300 group"
+          className="group flex items-center gap-4 rounded-xl p-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50"
         >
-          <div className="p-2 rounded-lg bg-gradient-to-br from-red-100 to-orange-100 group-hover:from-red-200 group-hover:to-orange-200 transition-all duration-300">
+          <div className="rounded-lg bg-gradient-to-br from-red-100 to-orange-100 p-2 transition-all duration-300 group-hover:from-red-200 group-hover:to-orange-200">
             <Icon size={20} className="text-red-600" />
           </div>
           <div>
@@ -100,28 +90,35 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
       >
         <Link
           href={item.href}
-          className="group relative flex items-center gap-2 px-4 py-3 rounded-xl font-medium text-gray-700 hover:text-red-600 transition-all duration-300 overflow-hidden"
+          className="group relative flex items-center gap-2 overflow-hidden rounded-xl px-4 py-3 font-medium text-gray-700 transition-all duration-300 hover:text-red-600"
         >
           {/* Background glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-red-100/0 via-orange-100/0 to-red-100/0 group-hover:from-red-100/50 group-hover:via-orange-100/50 group-hover:to-red-100/50 rounded-xl transition-all duration-500" />
-          
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-100/0 via-orange-100/0 to-red-100/0 transition-all duration-500 group-hover:from-red-100/50 group-hover:via-orange-100/50 group-hover:to-red-100/50" />
+
           {/* Icon with animation */}
           <motion.div
             className="relative z-10"
-            animate={isHovered ? { 
-              rotate: [0, -10, 10, 0],
-              scale: [1, 1.1, 1.1, 1]
-            } : {}}
+            animate={
+              isHovered
+                ? {
+                    rotate: [0, -10, 10, 0],
+                    scale: [1, 1.1, 1.1, 1],
+                  }
+                : {}
+            }
             transition={{ duration: 0.6, ease: "easeInOut" }}
           >
-            <Icon size={18} className="group-hover:text-red-600 transition-colors duration-300" />
+            <Icon
+              size={18}
+              className="transition-colors duration-300 group-hover:text-red-600"
+            />
           </motion.div>
-          
+
           <span className="relative z-10">{item.name}</span>
-          
+
           {/* Hover indicator */}
           <motion.div
-            className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
+            className="absolute bottom-0 left-0 h-0.5 rounded-full bg-gradient-to-r from-red-500 to-orange-500"
             initial={{ width: 0 }}
             animate={{ width: isHovered ? "100%" : 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
@@ -137,9 +134,8 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 z-50"
-          >
-          </motion.div>
+            className="absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 transform"
+          ></motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -164,34 +160,42 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className={clsx(
-      "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-      isScrolled 
-        ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50" 
-        : "bg-transparent"
-    )}>
+    <nav
+      className={clsx(
+        "fixed top-0 right-0 left-0 z-50 transition-all duration-300",
+        isScrolled
+          ? "border-b border-gray-200/50 bg-white/95 shadow-lg backdrop-blur-md"
+          : "bg-transparent",
+      )}
+    >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-        <Link href="/" className="group flex items-center gap-3">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center">
-            <Image 
-            src="/MeuVestibulinho_Logo.png" 
-            alt="Logo" 
-            width={60} height={60} 
-            priority />
-          </motion.div>
-          <div>
-            <div className="font-bold text-xl leading-none text-red-600 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-red-600 group-hover:to-orange-600 group-hover:-translate-y-0.5 group-hover:drop-shadow-md">
-              Meu
+          <Link href="/" className="group flex items-center gap-3">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center"
+            >
+              <Image
+                src="/MeuVestibulinho_Logo.png"
+                alt="Logo"
+                width={60}
+                height={60}
+                priority
+              />
+            </motion.div>
+            <div>
+              <div className="text-xl leading-none font-bold text-red-600 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-gradient-to-r group-hover:from-red-600 group-hover:to-orange-600 group-hover:bg-clip-text group-hover:text-transparent group-hover:drop-shadow-md">
+                Meu
+              </div>
+              <div className="text-xl leading-none font-bold text-orange-500 transition-all duration-300 group-hover:translate-y-0.5 group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-red-600 group-hover:bg-clip-text group-hover:text-transparent group-hover:drop-shadow-md">
+                Vestibulinho
+              </div>
             </div>
-            <div className="font-bold text-xl leading-none text-orange-500 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-red-600 group-hover:translate-y-0.5 group-hover:drop-shadow-md">
-              Vestibulinho
-            </div>
-          </div>
-        </Link>
+          </Link>
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-2">
+          <div className="hidden items-center gap-2 lg:flex">
             {navItems.map((item) => (
               <NavItem key={item.name} item={item} />
             ))}
@@ -201,7 +205,7 @@ export const Navbar = () => {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={toggleMobileMenu}
-            className="lg:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+            className="rounded-xl p-2 transition-colors duration-200 hover:bg-gray-100 lg:hidden"
           >
             <AnimatePresence initial={false} mode="wait">
               {isMobileMenuOpen ? (
@@ -238,7 +242,7 @@ export const Navbar = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="lg:hidden bg-white/95 backdrop-blur-md border-t border-gray-200/50 shadow-lg overflow-hidden"
+            className="overflow-hidden border-t border-gray-200/50 bg-white/95 shadow-lg backdrop-blur-md lg:hidden"
           >
             <div className="container mx-auto px-4 py-6">
               <div className="space-y-2">

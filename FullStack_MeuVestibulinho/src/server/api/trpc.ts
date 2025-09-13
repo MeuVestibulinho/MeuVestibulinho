@@ -1,5 +1,5 @@
 /**
- * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS: 
+ * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS:
  * 1. You want to modify request context (see Part 1).
  * 2. You want to create a new middleware or type of procedure (see Part 3).
  *
@@ -132,9 +132,8 @@ export const protectedProcedure = t.procedure
     });
   });
 
-  // Nesse arquivo definimos a configuração do tRPC no backend
+// Nesse arquivo definimos a configuração do tRPC no backend
 
-  //Contexto é um objeto que pode conter informações como usuário autenticado, conexões de banco de dados, etc.
-  
-  // Middleware é uma função que pode modificar a requisição ou resposta, ou executar código antes ou depois de uma rota ser processada
-  
+//Contexto é um objeto que pode conter informações como usuário autenticado, conexões de banco de dados, etc.
+
+// Middleware é uma função que pode modificar a requisição ou resposta, ou executar código antes ou depois de uma rota ser processada
