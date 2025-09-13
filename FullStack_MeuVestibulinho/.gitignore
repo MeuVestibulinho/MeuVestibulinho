@@ -44,12 +44,3 @@ yarn-error.log*
 
 # idea files
 .idea
-
-# Ignore TUDO dentro de dev-env (volumes do Postgres, Keycloak, etc.)
-*
-
-# Exceto arquivos de configuração que você queira versionar
-!.gitignore
-!docker-compose.yml
-!*.example
-!README.md
