@@ -33,7 +33,7 @@ const navItems = [
   },
   {
     name: "Mini Cursos",
-    href: "",
+    href: "/mini-cursos",
     icon: Play,
   }
 ];
