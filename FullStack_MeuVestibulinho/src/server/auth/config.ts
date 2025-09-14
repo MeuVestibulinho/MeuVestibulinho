@@ -1,149 +1,133 @@
-// src/server/auth/config.ts
-// ------------------------------------------------------------
-// NextAuth (Auth.js v5) + Prisma + Keycloak (condicional)
-// - Sessão em JWT (middleware enxerga req.auth)
-// - Callbacks compatíveis com JWT (usa token.sub como id)
-// - Providers tipados (sem any)
-// - Keycloak só liga quando variáveis do .env existem
-// ------------------------------------------------------------
-
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { type DefaultSession, type NextAuthConfig } from "next-auth";
-
+import NextAuth, { type NextAuthConfig, type User } from "next-auth";
+import KeycloakProvider from "next-auth/providers/keycloak";
 import DiscordProvider from "next-auth/providers/discord";
-import Keycloak from "next-auth/providers/keycloak";
-import Google from "next-auth/providers/google";
-import Credentials from "next-auth/providers/credentials";
-
-import type { Provider } from "next-auth/providers";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "~/server/db";
+import { z } from "zod";
 
 /**
- * Augmentação de tipos da sessão:
- * Adiciona `user.id` no objeto de sessão com type-safety.
+ * Type guard para providers já-resolvidos (não fábricas):
+ * garante que há `id: string` e opcionalmente `name: string`.
  */
-declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: {
-      id: string;
-    } & DefaultSession["user"];
-  }
+type ProviderLike = { id: string; name?: string };
+function isProviderLike(p: unknown): p is ProviderLike {
+  return (
+    typeof p === "object" &&
+    p !== null &&
+    "id" in p &&
+    typeof (p as { id: unknown }).id === "string"
+  );
 }
 
-// Flags a partir do .env
-const hasKeycloak =
-  !!process.env.KEYCLOAK_ISSUER &&
-  !!process.env.KEYCLOAK_CLIENT_ID &&
-  !!process.env.KEYCLOAK_CLIENT_SECRET;
-
-const hasDiscord =
-  !!process.env.AUTH_DISCORD_ID && !!process.env.AUTH_DISCORD_SECRET;
-
-const isDev = process.env.NODE_ENV === "development";
-
-// Tipagem do perfil do Google mock (sem `any`)
-type GoogleMockProfile = {
-  sub: string | number;
-  name?: string | null;
-  email?: string | null;
-  picture?: string | null;
-};
-
-// Lista final de providers (tipada)
-const providers = [
-  ...(hasKeycloak
-    ? [
-        Keycloak({
-          // Ex.: http://localhost:8080/realms/meuvestibulinho
-          issuer: process.env.KEYCLOAK_ISSUER!,
-          // Ex.: nextjs
-          clientId: process.env.KEYCLOAK_CLIENT_ID!,
-          // Copie de Clients → Credentials
-          clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
-        }),
-      ]
-    : []),
-
-  ...(hasDiscord ? [DiscordProvider] : []),
-
-  ...(isDev
-    ? [
-        Google({
-          clientId: "google-id-123",
-          clientSecret: "dummy",
-          authorization: {
-            url: "https://oauth-mock.mock.beeceptor.com/oauth/authorize",
-          },
-          token: {
-            url: "https://oauth-mock.mock.beeceptor.com/oauth/token/google",
-          },
-          userinfo: {
-            url: "https://oauth-mock.mock.beeceptor.com/userinfo/google",
-          },
-          profile(profile: unknown) {
-            const p = profile as GoogleMockProfile;
-            return {
-              id: String(p.sub),
-              name: p.name ?? null,
-              email: p.email ?? null,
-              image: p.picture ?? null,
-            };
-          },
-        }),
-      ]
-    : []),
-
-  // Credentials para teste rápido
-  Credentials({
-    name: "Demo (e-mail apenas)",
-    credentials: {
-      email: { label: "Email", type: "text", placeholder: "voce@exemplo.com" },
-    },
-    async authorize(raw) {
-      const email = typeof raw?.email === "string" ? raw.email.trim() : "";
-      if (!email) return null;
-
-      const user = await db.user.upsert({
-        where: { email },
-        update: {},
-        create: { email, name: "Demo" },
-      });
-
-      return { id: user.id, email: user.email ?? email, name: user.name ?? "Demo" };
-    },
-  }),
-] satisfies Provider[];
-
-// Config principal do NextAuth
-export const authConfig = {
-  providers,
+/**
+ * Configuração principal do Auth.js v5
+ */
+export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(db),
+  session: { strategy: "jwt" },
 
-  // ✅ Middleware precisa de JWT para enxergar req.auth
-  session: { strategy: "jwt" as const },
+  providers: [
+    // Keycloak (habilita se TODAS as ENVs existirem)
+    ...(process.env.KEYCLOAK_ISSUER &&
+    process.env.KEYCLOAK_CLIENT_ID &&
+    process.env.KEYCLOAK_CLIENT_SECRET
+      ? [
+          KeycloakProvider({
+            issuer: process.env.KEYCLOAK_ISSUER,
+            clientId: process.env.KEYCLOAK_CLIENT_ID,
+            clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+
+    // Discord (opcional)
+    ...(process.env.AUTH_DISCORD_ID && process.env.AUTH_DISCORD_SECRET
+      ? [
+          DiscordProvider({
+            clientId: process.env.AUTH_DISCORD_ID,
+            clientSecret: process.env.AUTH_DISCORD_SECRET,
+          }),
+        ]
+      : []),
+
+    // Google (opcional)
+    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.AUTH_GOOGLE_ID,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+          }),
+        ]
+      : []),
+
+    // Credentials (helper em dev)
+    ...(process.env.NODE_ENV === "development"
+      ? [
+          CredentialsProvider({
+            credentials: {
+              email: { label: "Email", type: "text" },
+            },
+            async authorize(
+              credentials: Partial<Record<"email", unknown>>,
+              _request: Request,
+            ): Promise<User | null> {
+              // Validação segura (evita no-base-to-string e no-unsafe-*)
+              const parsed = z
+                .object({ email: z.string().email() })
+                .safeParse(credentials);
+
+              if (!parsed.success) return null;
+
+              const { email } = parsed.data; // string validada por Zod
+              const user: User = {
+                id: `dev-${email}`,
+                email,
+                name: "Dev User",
+              };
+              return user;
+            },
+          }),
+        ]
+      : []),
+  ],
 
   callbacks: {
-    // ✅ Grava o id no token ao logar (padrão OIDC usa `sub`)
     async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-        token.name = user.name ?? token.name;
-        token.email = user.email ?? token.email;
-      }
+      if (user?.id) token.sub = user.id;
       return token;
     },
-
-    // ✅ Em JWT, 'user' pode vir undefined; use `token.sub`
     async session({ session, token }) {
+      // adiciona id ao session.user se disponível, sem assertions
       return {
         ...session,
-        user: {
-          ...session.user,
-          id: (token.sub as string) ?? session.user?.id ?? "",
-        },
+        user: session.user
+          ? { ...session.user, id: token.sub ?? undefined }
+          : session.user,
       };
     },
   },
 
   secret: process.env.NEXTAUTH_SECRET,
 } satisfies NextAuthConfig;
+
+/**
+ * Lista de providers habilitados para a UI (id + name)
+ * - Não assume que `providers` tenha sempre `.id` (pode haver fábricas)
+ * - Narrowing com type guard, sem casts perigosos
+ */
+const rawProviders: unknown[] = [...(authConfig.providers ?? [])];
+export const enabledProviders: { id: string; name: string }[] = rawProviders
+  .filter(isProviderLike)
+  .map((p) => ({
+    id: p.id,
+    name: p.name ?? p.id,
+  }));
+
+/**
+ * Exports do NextAuth (mantém o padrão do seu projeto)
+ */
+const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth(authConfig);
+export { handlers, signIn, signOut };
+export { uncachedAuth as auth };

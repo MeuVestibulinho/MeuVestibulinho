@@ -1,50 +1,56 @@
 "use client";
 
 import Image from "next/image";
-
-import * as React from "react";
 import Link from "next/link";
+import * as React from "react";
 import { motion, useAnimation, AnimatePresence } from "motion/react";
-import { BookOpen, User, GraduationCap, Play, Menu, X, Paperclip } from "lucide-react";
+import {
+  BookOpen,
+  User,
+  GraduationCap,
+  Play,
+  Menu,
+  X,
+  Paperclip,
+} from "lucide-react";
 import clsx from "clsx";
 
-const navItems = [
-  {
-    name: "Simulados",
-    href: "",
-    icon: BookOpen,
-  },
-  {
-    name: "Meu Espaço",
-    href: "",
-    icon: Paperclip,
-  },
-  {
-    name: "Guia de Estudos",
-    href: "/guia",
-    icon: GraduationCap,
-  },
-  {
-    name: "Mini Cursos",
-    href: "/mini-cursos",
-    icon: Play,
-  },
-  {
-    name: "Login",
-    href: "http://localhost:3000/api/auth/signin",
-    icon: User,
-  },
-];
+// Mapeia string -> ícone Lucide (evita passar componentes entre server/client)
+const ICONS = {
+  BookOpen,
+  User,
+  GraduationCap,
+  Play,
+  Menu,
+  X,
+  Paperclip,
+};
 
-interface NavItemProps {
-  item: (typeof navItems)[0];
+export type NavLink = {
+  name: string;
+  href: string;
+  icon: keyof typeof ICONS;
+};
+
+type Props = {
+  links: NavLink[];
+  isAuthenticated: boolean;
+  userLabel: string;
+  signInHref: string;
+  signOutHref: string; // GET mostra página de confirmação do Auth.js
+  rightSlot?: React.ReactNode; // renderizado no desktop (servidor injeta)
+};
+
+type NavItemProps = {
+  item: NavLink;
   isMobile?: boolean;
   onClose?: () => void;
-}
+};
 
 const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const controls = useAnimation();
+  const Icon = ICONS[item.icon];
 
   const handleHover = () => {
     setIsHovered(true);
@@ -64,8 +70,6 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
     });
   };
 
-  const Icon = item.icon;
-
   if (isMobile) {
     return (
       <motion.div whileTap={{ scale: 0.95 }} className="w-full">
@@ -77,9 +81,7 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
           <div className="rounded-lg bg-gradient-to-br from-red-100 to-orange-100 p-2 transition-all duration-300 group-hover:from-red-200 group-hover:to-orange-200">
             <Icon size={20} className="text-red-600" />
           </div>
-          <div>
-            <div className="font-medium text-gray-900">{item.name}</div>
-          </div>
+          <div className="font-medium text-gray-900">{item.name}</div>
         </Link>
       </motion.div>
     );
@@ -97,31 +99,19 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
           href={item.href}
           className="group relative flex items-center gap-2 overflow-hidden rounded-xl px-4 py-3 font-medium text-gray-700 transition-all duration-300 hover:text-red-600"
         >
-          {/* Background glow effect */}
           <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-100/0 via-orange-100/0 to-red-100/0 transition-all duration-500 group-hover:from-red-100/50 group-hover:via-orange-100/50 group-hover:to-red-100/50" />
-
-          {/* Icon with animation */}
           <motion.div
             className="relative z-10"
             animate={
               isHovered
-                ? {
-                    rotate: [0, -10, 10, 0],
-                    scale: [1, 1.1, 1.1, 1],
-                  }
+                ? { rotate: [0, -10, 10, 0], scale: [1, 1.1, 1.1, 1] }
                 : {}
             }
             transition={{ duration: 0.6, ease: "easeInOut" }}
           >
-            <Icon
-              size={18}
-              className="transition-colors duration-300 group-hover:text-red-600"
-            />
+            <Icon className="h-[18px] w-[18px] transition-colors duration-300 group-hover:text-red-600" />
           </motion.div>
-
           <span className="relative z-10">{item.name}</span>
-
-          {/* Hover indicator */}
           <motion.div
             className="absolute bottom-0 left-0 h-0.5 rounded-full bg-gradient-to-r from-red-500 to-orange-500"
             initial={{ width: 0 }}
@@ -130,8 +120,6 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
           />
         </Link>
       </motion.div>
-
-      {/* Tooltip */}
       <AnimatePresence initial={false}>
         {isHovered && (
           <motion.div
@@ -140,29 +128,29 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 transform"
-          ></motion.div>
+          />
         )}
       </AnimatePresence>
     </div>
   );
 };
 
-export const Navbar = () => {
+export default function NavbarClient({
+  links,
+  isAuthenticated,
+  userLabel,
+  signInHref,
+  signOutHref,
+  rightSlot,
+}: Props) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
 
   React.useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
 
   return (
     <nav
@@ -199,18 +187,23 @@ export const Navbar = () => {
               </div>
             </div>
           </Link>
+
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-2 lg:flex">
-            {navItems.map((item) => (
+            {links.map((item) => (
               <NavItem key={item.name} item={item} />
             ))}
+
+            {/* Slot do lado direito (login/nome/logout) injetado pelo server */}
+            <div className="ml-2">{rightSlot}</div>
           </div>
 
           {/* Mobile Menu Button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={toggleMobileMenu}
+            onClick={() => setIsMobileMenuOpen((v) => !v)}
             className="rounded-xl p-2 transition-colors duration-200 hover:bg-gray-100 lg:hidden"
+            aria-label="Menu"
           >
             <AnimatePresence initial={false} mode="wait">
               {isMobileMenuOpen ? (
@@ -251,7 +244,7 @@ export const Navbar = () => {
           >
             <div className="container mx-auto px-4 py-6">
               <div className="space-y-2">
-                {navItems.map((item, index) => (
+                {links.map((item, index) => (
                   <motion.div
                     key={item.name}
                     initial={{ opacity: 0, x: -20 }}
@@ -265,6 +258,39 @@ export const Navbar = () => {
                     />
                   </motion.div>
                 ))}
+
+                {/* Item extra de autenticação no mobile */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: links.length * 0.1, duration: 0.3 }}
+                >
+                  {isAuthenticated ? (
+                    <Link
+                      href={signOutHref}
+                      className="group flex items-center gap-4 rounded-xl p-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <div className="rounded-lg bg-gradient-to-br from-red-100 to-orange-100 p-2">
+                        <User size={20} className="text-red-600" />
+                      </div>
+                      <div className="font-medium text-gray-900">
+                        Sair ({userLabel})
+                      </div>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={signInHref}
+                      className="group flex items-center gap-4 rounded-xl p-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <div className="rounded-lg bg-gradient-to-br from-red-100 to-orange-100 p-2">
+                        <User size={20} className="text-red-600" />
+                      </div>
+                      <div className="font-medium text-gray-900">Entrar</div>
+                    </Link>
+                  )}
+                </motion.div>
               </div>
             </div>
           </motion.div>
@@ -272,4 +298,4 @@ export const Navbar = () => {
       </AnimatePresence>
     </nav>
   );
-};
+}
