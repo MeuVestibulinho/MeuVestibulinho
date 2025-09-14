@@ -12,46 +12,54 @@
 
 // Define como o Prisma vai gerar o Prisma Client (biblioteca tipada para acessar o DB):
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 
 
-//Diz ao Prisma qual banco usar (Postgres, MySQL, SQLite, etc.) e onde está a conexão:
+// Diz ao Prisma qual banco usar (Postgres, MySQL, SQLite, etc.) e onde está a conexão:
 datasource db {
-    provider = "postgresql"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+
+  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
+  // Further reading:
+  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+
+  // URL principal do banco que sua aplicação usa
+  url = env("DATABASE_URL")
+
+  // 👇 IMPORTANTE: URL do "shadow database" usada pelo `prisma migrate dev` para comparar/montar migrações com segurança.
+  // Aqui apontamos para o DB "postgres" (padrão) com um schema fictício "shadow".
+  // Defina a variável SHADOW_DATABASE_URL no seu .env (exemplo abaixo).
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 // Usuário da aplicação (aluno/professor/admin, etc.)
 model User {
   id            String   @id @default(cuid())    // PK string gerada com cuid(), cuid() é um gerador de IDs únicos
-  name          String?                         // nome opcional
-  email         String?  @unique                // e-mail opcional, mas único se existir
-  emailVerified DateTime?                       // quando o e-mail foi verificado (magic link)
-  image         String?                         // avatar/foto (URL)
-  accounts      Account[]                       // 1:N -> contas OAuth ligadas a este user (OAuth é um padrão aberto de autorização que permite que você use uma conta de um serviço (Google, Facebook, GitHub, Discord, etc.) para se autenticar em outro sistema sem precisar passar a senha desse serviço.)
-  sessions      Session[]                       // 1:N -> sessões ativas (cookies/JWT persistido)
+  name          String?                          // nome opcional
+  email         String?  @unique                 // e-mail opcional, mas único se existir
+  emailVerified DateTime?                        // quando o e-mail foi verificado (magic link)
+  image         String?                          // avatar/foto (URL)
+  accounts      Account[]                        // 1:N -> contas OAuth ligadas a este user (OAuth é um padrão aberto de autorização que permite que você use uma conta de um serviço (Google, Facebook, GitHub, Discord, etc.) para se autenticar em outro sistema sem precisar passar a senha desse serviço.)
+  sessions      Session[]                        // 1:N -> sessões ativas (cookies/JWT persistido)
 }
 
 // Conta de provedor de login, aqui ficam as informações de autenticação fornecidas pelo provedor de OAuth (google, github, discord, etc.)
 model Account {
   id                String  @id @default(cuid()) // PK
-  userId            String                         // FK para User
-  type              String                         // "oauth" | "oidc" | "email" | "credentials"…
-  provider          String                         // nome do provedor, ex.: "google"
-  providerAccountId String                         // ID do usuário no provedor (ex.: sub do Google)
-  refresh_token     String?                        // token de refresh (se o provedor fornece)
-  access_token      String?                        // token de acesso
-  expires_at        Int?                           // epoch (segundos) de expiração do access_token
-  token_type        String?                        // ex.: "bearer"
-  scope             String?                        // escopos concedidos, ex.: "openid email profile"
-  id_token          String?                        // id_token (OIDC)
-  session_state     String?                        // usado por alguns provedores (opcional)
+  userId            String                          // FK para User
+  type              String                          // "oauth" | "oidc" | "email" | "credentials"…
+  provider          String                          // nome do provedor, ex.: "google"
+  providerAccountId String                          // ID do usuário no provedor (ex.: sub do Google)
+  refresh_token     String?                         // token de refresh (se o provedor fornece)
+  access_token      String?                         // token de acesso
+  expires_at        Int?                            // epoch (segundos) de expiração do access_token
+  token_type        String?                         // ex.: "bearer"
+  scope             String?                         // escopos concedidos, ex.: "openid email profile"
+  id_token          String?                         // id_token (OIDC)
+  session_state     String?                         // usado por alguns provedores (opcional)
 
   // Relação N:1 com User; apaga contas ao apagar o user (Cascade), é um comando do SQL, vimos isso na aula de base de dados relacional
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -91,7 +99,4 @@ model VerificationToken {
 
 // Nesse arquivo definimos as tabelas do banco de dados e seus relacionamentos, que serão usados pelo Prisma Client para fazer consultas ao banco de dados de forma tipada e segura.
 // Cada um desses models vira uma tabela no banco de dados relacional (PostgreSQL, MySQL, SQLite, etc.) e o Prisma Client gera código TypeScript para interagir com essas tabelas de forma fácil e segura.
-
-
-
 

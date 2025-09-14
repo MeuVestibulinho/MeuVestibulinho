@@ -1,3 +1,6 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateTable
 CREATE TABLE "public"."User" (
     "id" TEXT NOT NULL,

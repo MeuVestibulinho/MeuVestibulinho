@@ -43,4 +43,8 @@ yarn-error.log*
 *.tsbuildinfo
 
 # idea files
-.idea
+.idea# ---- dev-env (ignorar em qualquer subpasta) ----
+**/dev-env/**
+# (opcional) permitir um marcador vazio se quiser manter a pasta no repo:
+!**/dev-env/.gitkeep
+!**/dev-env/.keep

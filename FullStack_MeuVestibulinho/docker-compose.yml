@@ -1,0 +1,62 @@
+services:
+  # ---------------------------
+  # PostgreSQL (desenvolvimento)
+  # Porta do host default: 5433
+  # ---------------------------
+  postgres:
+    image: postgres:16
+    container_name: t3_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-meuvestibulinho}
+    ports:
+      - "${DB_PORT:-5433}:5432"   # mapeia host 5433 -> container 5432
+    volumes:
+      - meuvesti_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-meuvestibulinho}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ---------------------------
+  # Keycloak (dev)
+  # Admin UI em http://localhost:8080
+  # Login inicial: admin / admin (ou o que definir no .env)
+  # ---------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.4   # tag válida
+    # alternativa (Docker Hub): keycloak/keycloak:26.3.4
+    container_name: t3_keycloak
+    command: start-dev --http-port=8080
+    restart: unless-stopped
+    environment:
+      # Nas versões 26+, use KC_BOOTSTRAP_* para criar o admin no start-dev.
+      # Mantemos suas vars KEYCLOAK_* como fonte, com default "admin".
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    # (sem healthcheck para simplificar; o start-dev já indica readiness nos logs)
+
+  # pgadmin (opcional) — habilite removendo os comentários
+  # pgadmin:
+  #   image: dpage/pgadmin4:8
+  #   container_name: t3_pgadmin
+  #   restart: unless-stopped
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@local}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+  #   ports:
+  #     - "${PGADMIN_PORT:-5050}:80"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+volumes:
+  meuvesti_pgdata:
+  keycloak_data:

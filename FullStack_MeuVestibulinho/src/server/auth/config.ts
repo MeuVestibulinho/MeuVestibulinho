@@ -1,16 +1,20 @@
-// Importa o adaptador Prisma para NextAuth.js, que permite usar o Prisma como backend de banco de dados para autenticação
-// PrismaAdapter é uma função que conecta o NextAuth.js ao Prisma, facilitando o armazenamento e recuperação de dados de usuários, sessões, etc.
-import { PrismaAdapter } from "@auth/prisma-adapter";
+// src/server/auth/config.ts
+// ------------------------------------------------------------
+// NextAuth (Auth.js v5) + Prisma + Keycloak (condicional)
+// - Tipagem correta (sem any)
+// - Providers tipados com `satisfies Provider[]`
+// - Keycloak só liga com envs e com issuer explícito
+// ------------------------------------------------------------
 
-// Importa tipos do NextAuth.js para tipar o objeto de sessão e a configuração do NextAuth
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 
-// Importa o provedor de autenticação do Discord para NextAuth.js, permitindo que os usuários façam login usando suas contas do Discord
 import DiscordProvider from "next-auth/providers/discord";
 import Keycloak from "next-auth/providers/keycloak";
 import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 
-// Importa o banco de dados Prisma configurado na aplicação, que será usado pelo adaptador do NextAuth.js
+import type { Provider } from "next-auth/providers"; // <- tipo dos providers
 import { db } from "~/server/db";
 
 /**
@@ -19,95 +23,122 @@ import { db } from "~/server/db";
  *
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
-
-// Aqui estamos estendendo os tipos do NextAuth.js para adicionar propriedades personalizadas ao objeto de sessão
-// Isso é útil para garantir que o TypeScript reconheça essas propriedades adicionais quando acessamos a sessão do usuário
 declare module "next-auth" {
   interface Session extends DefaultSession {
-    // Estende a interface padrão de sessão do NextAuth.js
     user: {
-      // Adiciona propriedades personalizadas ao objeto user dentro da sessão
-      id: string; // Adiciona a propriedade id do usuário, que é uma string
-      // ...other properties
-      // role: UserRole;
-    } & DefaultSession["user"]; // Combina as propriedades personalizadas com as propriedades padrão do objeto user
+      id: string;
+      // ...outras props no futuro (ex.: role)
+    } & DefaultSession["user"];
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
 
-/**
- * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
- *
- * @see https://next-auth.js.org/configuration/options
- */
+// -------------------------------
+// Flags a partir do .env
+// -------------------------------
+const hasKeycloak =
+  !!process.env.KEYCLOAK_ISSUER &&
+  !!process.env.KEYCLOAK_CLIENT_ID &&
+  !!process.env.KEYCLOAK_CLIENT_SECRET;
 
-// Adiciona Keycloak em dev um serviço OAUTH para testes
-const providers = [];
-if (process.env.NODE_ENV === "development") {
-  providers.push(
-    Keycloak,
-    // Servidor mock que imita o Google
-    Google({
-      clientId: "google-id-123",
-      clientSecret: "dummy",
-      authorization: {
-        url: "https://oauth-mock.mock.beeceptor.com/oauth/authorize",
-      },
-      token: {
-        url: "https://oauth-mock.mock.beeceptor.com/oauth/token/google",
-      },
-      userinfo: {
-        url: "https://oauth-mock.mock.beeceptor.com/userinfo/google",
-      },
-      profile(profile) {
-        return {
-          id: String(profile.sub),
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
-        };
-      },
-    }),
-  );
-}
+const hasDiscord =
+  !!process.env.AUTH_DISCORD_ID && !!process.env.AUTH_DISCORD_SECRET;
 
-// Define a configuração do NextAuth.js, incluindo provedores de autenticação, adaptador de banco de dados e callbacks
+const isDev = process.env.NODE_ENV === "development";
+
+// -------------------------------
+// Tipagem do perfil do Google mock
+// (apenas para eliminar `any`)
+// -------------------------------
+type GoogleMockProfile = {
+  sub: string | number;
+  name?: string | null;
+  email?: string | null;
+  picture?: string | null;
+};
+
+// -------------------------------
+// Lista final de providers (tipada)
+// Usamos spreads condicionais e garantimos o tipo com `satisfies Provider[]`
+// -------------------------------
+const providers = [
+  // Keycloak: só entra se as envs existirem
+  ...(hasKeycloak
+    ? [
+        Keycloak({
+          issuer: process.env.KEYCLOAK_ISSUER!, // ex.: http://localhost:8080/realms/meuvestibulinho
+          clientId: process.env.KEYCLOAK_CLIENT_ID!, // ex.: nextjs
+          clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!, // copie de Clients → Credentials
+        }),
+      ]
+    : []),
+
+  // Discord: só entra se tiver envs AUTH_DISCORD_*
+  ...(hasDiscord ? [DiscordProvider] : []),
+
+  // Google mock em dev (como você já usava), com perfil tipado
+  ...(isDev
+    ? [
+        Google({
+          clientId: "google-id-123",
+          clientSecret: "dummy",
+          authorization: {
+            url: "https://oauth-mock.mock.beeceptor.com/oauth/authorize",
+          },
+          token: {
+            url: "https://oauth-mock.mock.beeceptor.com/oauth/token/google",
+          },
+          userinfo: {
+            url: "https://oauth-mock.mock.beeceptor.com/userinfo/google",
+          },
+          profile(profile: unknown) {
+            const p = profile as GoogleMockProfile;
+            return {
+              id: String(p.sub),
+              name: p.name ?? null,
+              email: p.email ?? null,
+              image: p.picture ?? null,
+            };
+          },
+        }),
+      ]
+    : []),
+
+  // Credentials (sempre disponível para testes locais)
+  Credentials({
+    name: "Demo (e-mail apenas)",
+    credentials: {
+      email: { label: "Email", type: "text", placeholder: "voce@exemplo.com" },
+    },
+    async authorize(raw) {
+      const email = typeof raw?.email === "string" ? raw.email.trim() : "";
+      if (!email) return null;
+
+      const user = await db.user.upsert({
+        where: { email },
+        update: {},
+        create: { email, name: "Demo" },
+      });
+
+      return { id: user.id, email: user.email ?? email, name: user.name ?? "Demo" };
+    },
+  }),
+] satisfies Provider[];
+
+// -------------------------------
+// Config principal do NextAuth
+// -------------------------------
 export const authConfig = {
-  providers: [
-    // Define os provedores de autenticação que os usuários podem usar para fazer login
-    DiscordProvider, // Adiciona o provedor de autenticação do Discord, permitindo login com contas do Discord
-    ...providers,
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
-  ], // Fim da definição dos provedores de autenticação, mas poderíamos adicionar mais provedores aqui, como Google, GitHub, etc.
-  adapter: PrismaAdapter(db), // Usa o adaptador Prisma para conectar o NextAuth.js ao banco de dados Prisma, permitindo armazenar e recuperar dados de autenticação
+  providers,
+  adapter: PrismaAdapter(db),
+  session: { strategy: "database" },
   callbacks: {
-    // Define callbacks que são funções executadas em determinados momentos do fluxo de autenticação, elas servem para personalizar o comportamento do NextAuth.js
     session: ({ session, user }) => ({
-      // Callback que é chamado quando uma sessão é criada ou acessada
-      ...session, // Mantém todas as propriedades padrão da sessão
+      ...session,
       user: {
-        // Adiciona propriedades personalizadas ao objeto user dentro da sessão
-        ...session.user, // Mantém todas as propriedades padrão do objeto user
-        id: user.id, // Adiciona a propriedade id do usuário, que vem do objeto user retornado pelo adaptador
+        ...session.user,
+        id: user.id,
       },
     }),
   },
-} satisfies NextAuthConfig; // Usa "satisfies" para garantir que o objeto authConfig esteja em conformidade com o tipo NextAuthConfig, ajudando a evitar erros de tipagem
-
-// Esse arquivo define a configuração do NextAuth.js para autenticação na aplicação
-// Ele importa o adaptador Prisma para conectar o NextAuth.js ao banco de dados Prisma, permitindo armazenar e recuperar dados de autenticação
-// A configuração inclui provedores de autenticação (neste caso, apenas o Discord), o adaptador de banco de dados e callbacks para personalizar o comportamento do NextAuth.js
-// Também estende os tipos do NextAuth.js para adicionar propriedades personalizadas ao objeto de sessão, garantindo que o TypeScript reconheça essas propriedades adicionais
-// Com essa configuração, a aplicação pode suportar autenticação com provedores externos, facilitando o login dos usuários e integrando o sistema de autenticação ao banco de dados Prisma
+  secret: process.env.NEXTAUTH_SECRET,
+} satisfies NextAuthConfig;
