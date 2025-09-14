@@ -1,9 +1,10 @@
 // src/server/auth/config.ts
 // ------------------------------------------------------------
 // NextAuth (Auth.js v5) + Prisma + Keycloak (condicional)
-// - Tipagem correta (sem any)
-// - Providers tipados com `satisfies Provider[]`
-// - Keycloak só liga com envs e com issuer explícito
+// - Sessão em JWT (middleware enxerga req.auth)
+// - Callbacks compatíveis com JWT (usa token.sub como id)
+// - Providers tipados (sem any)
+// - Keycloak só liga quando variáveis do .env existem
 // ------------------------------------------------------------
 
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -14,27 +15,22 @@ import Keycloak from "next-auth/providers/keycloak";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 
-import type { Provider } from "next-auth/providers"; // <- tipo dos providers
+import type { Provider } from "next-auth/providers";
 import { db } from "~/server/db";
 
 /**
- * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
- * object and keep type safety.
- *
- * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
+ * Augmentação de tipos da sessão:
+ * Adiciona `user.id` no objeto de sessão com type-safety.
  */
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...outras props no futuro (ex.: role)
     } & DefaultSession["user"];
   }
 }
 
-// -------------------------------
 // Flags a partir do .env
-// -------------------------------
 const hasKeycloak =
   !!process.env.KEYCLOAK_ISSUER &&
   !!process.env.KEYCLOAK_CLIENT_ID &&
@@ -45,10 +41,7 @@ const hasDiscord =
 
 const isDev = process.env.NODE_ENV === "development";
 
-// -------------------------------
-// Tipagem do perfil do Google mock
-// (apenas para eliminar `any`)
-// -------------------------------
+// Tipagem do perfil do Google mock (sem `any`)
 type GoogleMockProfile = {
   sub: string | number;
   name?: string | null;
@@ -56,26 +49,23 @@ type GoogleMockProfile = {
   picture?: string | null;
 };
 
-// -------------------------------
 // Lista final de providers (tipada)
-// Usamos spreads condicionais e garantimos o tipo com `satisfies Provider[]`
-// -------------------------------
 const providers = [
-  // Keycloak: só entra se as envs existirem
   ...(hasKeycloak
     ? [
         Keycloak({
-          issuer: process.env.KEYCLOAK_ISSUER!, // ex.: http://localhost:8080/realms/meuvestibulinho
-          clientId: process.env.KEYCLOAK_CLIENT_ID!, // ex.: nextjs
-          clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!, // copie de Clients → Credentials
+          // Ex.: http://localhost:8080/realms/meuvestibulinho
+          issuer: process.env.KEYCLOAK_ISSUER!,
+          // Ex.: nextjs
+          clientId: process.env.KEYCLOAK_CLIENT_ID!,
+          // Copie de Clients → Credentials
+          clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
         }),
       ]
     : []),
 
-  // Discord: só entra se tiver envs AUTH_DISCORD_*
   ...(hasDiscord ? [DiscordProvider] : []),
 
-  // Google mock em dev (como você já usava), com perfil tipado
   ...(isDev
     ? [
         Google({
@@ -103,7 +93,7 @@ const providers = [
       ]
     : []),
 
-  // Credentials (sempre disponível para testes locais)
+  // Credentials para teste rápido
   Credentials({
     name: "Demo (e-mail apenas)",
     credentials: {
@@ -124,21 +114,36 @@ const providers = [
   }),
 ] satisfies Provider[];
 
-// -------------------------------
 // Config principal do NextAuth
-// -------------------------------
 export const authConfig = {
   providers,
   adapter: PrismaAdapter(db),
-  session: { strategy: "database" },
+
+  // ✅ Middleware precisa de JWT para enxergar req.auth
+  session: { strategy: "jwt" as const },
+
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    // ✅ Grava o id no token ao logar (padrão OIDC usa `sub`)
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+        token.name = user.name ?? token.name;
+        token.email = user.email ?? token.email;
+      }
+      return token;
+    },
+
+    // ✅ Em JWT, 'user' pode vir undefined; use `token.sub`
+    async session({ session, token }) {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: (token.sub as string) ?? session.user?.id ?? "",
+        },
+      };
+    },
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 } satisfies NextAuthConfig;

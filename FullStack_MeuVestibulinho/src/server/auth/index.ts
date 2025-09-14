@@ -21,3 +21,6 @@ export { auth, handlers, signIn, signOut };
 // A configuração inclui provedores de autenticação (neste caso, apenas o Discord), o adaptador de banco de dados e callbacks para personalizar o comportamento do NextAuth.js
 // Também estende os tipos do NextAuth.js para adicionar propriedades personalizadas ao objeto de sessão, garantindo que o TypeScript reconheça essas propriedades adicionais
 // Com essa configuração, a aplicação pode suportar autenticação com provedores externos, facilitando o login dos usuários e integrando o sistema de autenticação ao banco de dados Prisma
+// src/server/auth/index.ts
+
+
