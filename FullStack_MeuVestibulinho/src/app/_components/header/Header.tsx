@@ -4,7 +4,7 @@ import NavbarClient, { type NavLink } from "../Navbar";
 import { LogIn, LogOut } from "lucide-react";
 
 const LINKS: NavLink[] = [
-  { name: "Simulados", href: "", icon: "BookOpen" },
+  { name: "Simulados", href: "/simulados", icon: "BookOpen" },
   { name: "Meu Espaço", href: "", icon: "Paperclip" },
   { name: "Guia de Estudos", href: "/guia", icon: "GraduationCap" },
   { name: "Mini Cursos", href: "/mini-cursos", icon: "Play" },

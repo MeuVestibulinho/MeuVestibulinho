@@ -1,102 +1,160 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
+// Docs: https://pris.ly/d/prisma-schema
+//
+// O que é o Prisma?
+// ORM moderno para bancos relacionais com tipagem forte, migrações e DX excelente.
 
-
-// O que é o prisma ? 
-
-// É uma ferramenta que facilita a interação entre a sua aplicação e um banco de dados relacional,
-// sendo amplamente utilizada por sua modernidade, tipagem segura e por simplificar tarefas como modelagem de dados e migrações. 
-
-
-
-
-// Define como o Prisma vai gerar o Prisma Client (biblioteca tipada para acessar o DB):
+// ==========================
+// Prisma Client (geração)
+// ==========================
 generator client {
   provider = "prisma-client-js"
 }
 
-
-
-// Diz ao Prisma qual banco usar (Postgres, MySQL, SQLite, etc.) e onde está a conexão:
+// ==========================
+// Datasource (PostgreSQL)
+// ==========================
 datasource db {
-  provider = "postgresql"
-
-  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-  // Further reading:
-  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-
-  // URL principal do banco que sua aplicação usa
-  url = env("DATABASE_URL")
-
-  // 👇 IMPORTANTE: URL do "shadow database" usada pelo `prisma migrate dev` para comparar/montar migrações com segurança.
-  // Aqui apontamos para o DB "postgres" (padrão) com um schema fictício "shadow".
-  // Defina a variável SHADOW_DATABASE_URL no seu .env (exemplo abaixo).
+  provider          = "postgresql"
+  // URL principal do banco usado pela aplicação
+  url               = env("DATABASE_URL")
+  // URL do shadow database usada pelo `prisma migrate dev`
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-// Usuário da aplicação (aluno/professor/admin, etc.)
+/* ======================================================================
+   MODELOS DO AUTH.JS (NextAuth) — mantidos para compatibilidade do projeto
+   ====================================================================== */
+
 model User {
-  id            String   @id @default(cuid())    // PK string gerada com cuid(), cuid() é um gerador de IDs únicos
-  name          String?                          // nome opcional
-  email         String?  @unique                 // e-mail opcional, mas único se existir
-  emailVerified DateTime?                        // quando o e-mail foi verificado (magic link)
-  image         String?                          // avatar/foto (URL)
-  accounts      Account[]                        // 1:N -> contas OAuth ligadas a este user (OAuth é um padrão aberto de autorização que permite que você use uma conta de um serviço (Google, Facebook, GitHub, Discord, etc.) para se autenticar em outro sistema sem precisar passar a senha desse serviço.)
-  sessions      Session[]                        // 1:N -> sessões ativas (cookies/JWT persistido)
+  id            String    @id @default(cuid())     // PK
+  name          String?                           // nome opcional
+  email         String?    @unique                // e-mail opcional, único se existir
+  emailVerified DateTime?                         // data de verificação do e-mail
+  image         String?                           // avatar (URL)
+
+  accounts      Account[]                         // 1:N -> contas OAuth
+  sessions      Session[]                         // 1:N -> sessões (se usar Session store)
+
+  // (sem relações com questões por enquanto; focamos no modelo básico solicitado)
 }
 
-// Conta de provedor de login, aqui ficam as informações de autenticação fornecidas pelo provedor de OAuth (google, github, discord, etc.)
 model Account {
-  id                String  @id @default(cuid()) // PK
-  userId            String                          // FK para User
-  type              String                          // "oauth" | "oidc" | "email" | "credentials"…
-  provider          String                          // nome do provedor, ex.: "google"
-  providerAccountId String                          // ID do usuário no provedor (ex.: sub do Google)
-  refresh_token     String?                         // token de refresh (se o provedor fornece)
-  access_token      String?                         // token de acesso
-  expires_at        Int?                            // epoch (segundos) de expiração do access_token
-  token_type        String?                         // ex.: "bearer"
-  scope             String?                         // escopos concedidos, ex.: "openid email profile"
-  id_token          String?                         // id_token (OIDC)
-  session_state     String?                         // usado por alguns provedores (opcional)
+  id                String  @id @default(cuid())  // PK
+  userId            String                         // FK -> User
+  type              String                         // "oauth" | "oidc" | "email" | "credentials"…
+  provider          String                         // ex.: "google", "discord", "keycloak"
+  providerAccountId String                         // ID do usuário no provedor
 
-  // Relação N:1 com User; apaga contas ao apagar o user (Cascade), é um comando do SQL, vimos isso na aula de base de dados relacional
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Restrição única: um mesmo (provider, providerAccountId) só pode existir uma vez
-  // Provider é o nome do provedor (ex.: "google")
-  // providerAccountId é o ID do usuário nesse provedor (ex.: sub do Google)
-  // Isso evita que o mesmo usuário do Google seja cadastrado várias vezes
-  @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId])         // evita duplicar a mesma conta do provedor
 }
 
-// Sessão persistida pelo NextAuth (se usar sessões em BD; com JWT puro pode não usar), aqui ficam os tokens de sessão e quando expiram
-// Cada sessão está ligada a um usuário, essa tabela guarda as sessões ativas, que são criadas quando o usuário faz login
-// e são removidas quando o usuário faz logout ou a sessão expira
 model Session {
-  id           String   @id @default(cuid())      // PK (PK = Primary Key = chave primária)
-  sessionToken String   @unique                   // token da sessão (chave de lookup[ lookup = busca ])
-  userId       String                              // FK -> User (qual usuário tem essa sessão)
-  expires      DateTime                            // quando a sessão expira (UTC = tempo universal coordenado, ex.: 2024-06-25T12:00:00Z)
+  id           String   @id @default(cuid())      // PK
+  sessionToken String   @unique                   // token da sessão (lookup)
+  userId       String                             
+  expires      DateTime                           // expiração (UTC)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // Relação N:1 com User; apaga sessões ao apagar o user (Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Tokens temporários para verificação (ex.: e-mail de login, reset de senha)
-// Eles são criados quando o usuário pede um link mágico por e-mail (magic link) ou um reset de senha
-// e são removidos quando usados ou expirados, eles servem para validar que o usuário que clicou no link é o dono do e-mail
-// Cada token está ligado a um identificador (normalmente o e-mail do usuário)
 model VerificationToken {
-  identifier String                               // e-mail ou identificador
-  token      String   @unique                     // token enviado ao usuário
-  expires    DateTime                             // validade do token
+  identifier String                                // e-mail/identificador
+  token      String   @unique                      // token único
+  expires    DateTime
 
-  // Restrição única composta para evitar duplicatas por identificador+token, garantindo que cada token seja único para um dado identificador (identificador é o e-mail do usuário)
-  @@unique([identifier, token])
+  @@unique([identifier, token])                    // evita duplicatas
 }
 
+/* ===========================================================
+   MODELO ENXUTO DE QUESTÕES (Vestibulinho ETEC) 
+   =========================================================== */
 
-// Nesse arquivo definimos as tabelas do banco de dados e seus relacionamentos, que serão usados pelo Prisma Client para fazer consultas ao banco de dados de forma tipada e segura.
-// Cada um desses models vira uma tabela no banco de dados relacional (PostgreSQL, MySQL, SQLite, etc.) e o Prisma Client gera código TypeScript para interagir com essas tabelas de forma fácil e segura.
+/// Disciplinas suportadas
+enum Disciplina {
+  PORTUGUES
+  MATEMATICA
+  CIENCIAS_HUMANAS
+  CIENCIAS_NATUREZA
+  HISTORIA
+  GEOGRAFIA
+  BIOLOGIA
+  FISICA
+  QUIMICA
+}
 
+/// Grau de dificuldade
+enum GrauDificuldade {
+  MUITO_FACIL
+  FACIL
+  MEDIO
+  DIFICIL
+  MUITO_DIFICIL
+}
+
+/// Alternativa correta (A..E)
+enum Alternativa {
+  A
+  B
+  C
+  D
+  E
+}
+
+/// Questão: campos essenciais conforme a especificação solicitada.
+/// - Nomenclatura em camelCase para seguir convenção Prisma/TS.
+/// - Campos textuais longos com @db.Text.
+/// - Percentual de acerto como Decimal (string no JSON).
+model Questao {
+  // Identificação da Questão
+  id                      String          @id @default(cuid())   // chave primária
+  anoProva                Int                                 // ano da prova
+  edicao                  String                              // "1º semestre", "2º semestre", etc.
+  instituicao             String                              // "ETEC", "IFSP", etc.
+  urlProva                String?                             // link direto da prova oficial
+
+  // Classificação
+  disciplina              Disciplina                          // Matemática, Português, etc.
+  tema                    String?                             // ex.: frações
+  subtema                 String?                             // ex.: frações equivalentes
+  grauDificuldade         GrauDificuldade                     // fácil, médio, difícil
+  habilidade              String?                             // BNCC/competência (opcional)
+
+  // Conteúdo da Questão
+  enunciado               String          @db.Text            // enunciado textual
+  imagemUrl               String?                             // URL de imagem do enunciado, se houver
+
+  alternativaA            String          @db.Text            // A
+  alternativaB            String          @db.Text            // B
+  alternativaC            String          @db.Text            // C
+  alternativaD            String          @db.Text            // D
+  alternativaE            String          @db.Text            // E
+  respostaCorreta         Alternativa                          // "A".."E"
+
+  // Explicação / Resolução
+  resolucaoTexto          String?         @db.Text            // explicação passo a passo
+  resolucaoImagem         String?                             // imagem/print da resolução (URL)
+  fonteReferencia         String?                             // apostila/autor/prova original
+
+  // Metadados
+  tags                    String[]        @default([])        // palavras-chave
+  tempoMedioResolucaoMin  Int?                                // tempo médio (minutos)
+  percentualAcerto        Decimal?        @db.Decimal(5, 2)   // % (0–100, ex.: 78.50)
+  usosEmSimulados         Int             @default(0)         // contador de usos em simulados
+  comentarios             String?         @db.Text            // observações
+
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  @@index([anoProva, disciplina, grauDificuldade])
+}
