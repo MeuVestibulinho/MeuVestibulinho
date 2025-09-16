@@ -1,108 +1,100 @@
 // prisma/schema.prisma
-// Docs: https://pris.ly/d/prisma-schema
-//
-// O que é o Prisma?
-// ORM moderno para bancos relacionais com tipagem forte, migrações e DX excelente.
 
-// ==========================
-// Prisma Client (geração)
-// ==========================
 generator client {
   provider = "prisma-client-js"
 }
 
-// ==========================
-// Datasource (PostgreSQL)
-// ==========================
 datasource db {
-  provider          = "postgresql"
-  // URL principal do banco usado pela aplicação
-  url               = env("DATABASE_URL")
-  // URL do shadow database usada pelo `prisma migrate dev`
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-/* ======================================================================
-   MODELOS DO AUTH.JS (NextAuth) — mantidos para compatibilidade do projeto
-   ====================================================================== */
+/* ============================================================
+   Auth.js / NextAuth v5 – Sessão em banco (PrismaAdapter)
+   ============================================================ */
 
 model User {
-  id            String    @id @default(cuid())     // PK
-  name          String?                           // nome opcional
-  email         String?    @unique                // e-mail opcional, único se existir
-  emailVerified DateTime?                         // data de verificação do e-mail
-  image         String?                           // avatar (URL)
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
 
-  accounts      Account[]                         // 1:N -> contas OAuth
-  sessions      Session[]                         // 1:N -> sessões (se usar Session store)
+  accounts      Account[]
+  sessions      Session[]
 
-  // (sem relações com questões por enquanto; focamos no modelo básico solicitado)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Account {
-  id                String  @id @default(cuid())  // PK
-  userId            String                         // FK -> User
-  type              String                         // "oauth" | "oidc" | "email" | "credentials"…
-  provider          String                         // ex.: "google", "discord", "keycloak"
-  providerAccountId String                         // ID do usuário no provedor
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
 
-  refresh_token     String?
-  access_token      String?
+  // Tokens podem ser longos — usar TEXT evita truncamento
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])         // evita duplicar a mesma conta do provedor
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@index([userId]) // acelera joins por usuário
 }
 
 model Session {
-  id           String   @id @default(cuid())      // PK
-  sessionToken String   @unique                   // token da sessão (lookup)
-  userId       String                             
-  expires      DateTime                           // expiração (UTC)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId]) // acelera lookups por usuário
 }
 
 model VerificationToken {
-  identifier String                                // e-mail/identificador
-  token      String   @unique                      // token único
+  identifier String
+  token      String   @unique
   expires    DateTime
 
-  @@unique([identifier, token])                    // evita duplicatas
+  @@unique([identifier, token])
 }
 
-/* ===========================================================
-   MODELO ENXUTO DE QUESTÕES (Vestibulinho ETEC) 
-   =========================================================== */
+/* ============================================================
+   Domínio: Questões (ETEC / Vestibulinho)
+   ============================================================ */
 
-/// Disciplinas suportadas
+// Enums padronizados
 enum Disciplina {
   PORTUGUES
   MATEMATICA
-  CIENCIAS_HUMANAS
-  CIENCIAS_NATUREZA
+  CIENCIAS
   HISTORIA
   GEOGRAFIA
-  BIOLOGIA
-  FISICA
-  QUIMICA
+  INGLES
+  OUTRAS
 }
 
-/// Grau de dificuldade
 enum GrauDificuldade {
-  MUITO_FACIL
   FACIL
   MEDIO
   DIFICIL
-  MUITO_DIFICIL
 }
 
-/// Alternativa correta (A..E)
 enum Alternativa {
   A
   B
@@ -111,50 +103,31 @@ enum Alternativa {
   E
 }
 
-/// Questão: campos essenciais conforme a especificação solicitada.
-/// - Nomenclatura em camelCase para seguir convenção Prisma/TS.
-/// - Campos textuais longos com @db.Text.
-/// - Percentual de acerto como Decimal (string no JSON).
+// Questão de prova
 model Questao {
-  // Identificação da Questão
-  id                      String          @id @default(cuid())   // chave primária
-  anoProva                Int                                 // ano da prova
-  edicao                  String                              // "1º semestre", "2º semestre", etc.
-  instituicao             String                              // "ETEC", "IFSP", etc.
-  urlProva                String?                             // link direto da prova oficial
+  id              String           @id @default(cuid())
+  enunciado       String
+  disciplina      Disciplina
+  grauDificuldade GrauDificuldade
+  ano             Int?
+  fonteUrl        String?
+  imagemUrl       String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
-  // Classificação
-  disciplina              Disciplina                          // Matemática, Português, etc.
-  tema                    String?                             // ex.: frações
-  subtema                 String?                             // ex.: frações equivalentes
-  grauDificuldade         GrauDificuldade                     // fácil, médio, difícil
-  habilidade              String?                             // BNCC/competência (opcional)
+  alternativas    AlternativaQuestao[]
+}
 
-  // Conteúdo da Questão
-  enunciado               String          @db.Text            // enunciado textual
-  imagemUrl               String?                             // URL de imagem do enunciado, se houver
+// Alternativas vinculadas à questão
+model AlternativaQuestao {
+  id        String       @id @default(cuid())
+  questaoId String
+  letra     Alternativa
+  texto     String
+  correta   Boolean      @default(false)
 
-  alternativaA            String          @db.Text            // A
-  alternativaB            String          @db.Text            // B
-  alternativaC            String          @db.Text            // C
-  alternativaD            String          @db.Text            // D
-  alternativaE            String          @db.Text            // E
-  respostaCorreta         Alternativa                          // "A".."E"
+  questao   Questao      @relation(fields: [questaoId], references: [id], onDelete: Cascade)
 
-  // Explicação / Resolução
-  resolucaoTexto          String?         @db.Text            // explicação passo a passo
-  resolucaoImagem         String?                             // imagem/print da resolução (URL)
-  fonteReferencia         String?                             // apostila/autor/prova original
-
-  // Metadados
-  tags                    String[]        @default([])        // palavras-chave
-  tempoMedioResolucaoMin  Int?                                // tempo médio (minutos)
-  percentualAcerto        Decimal?        @db.Decimal(5, 2)   // % (0–100, ex.: 78.50)
-  usosEmSimulados         Int             @default(0)         // contador de usos em simulados
-  comentarios             String?         @db.Text            // observações
-
-  createdAt               DateTime        @default(now())
-  updatedAt               DateTime        @updatedAt
-
-  @@index([anoProva, disciplina, grauDificuldade])
+  @@unique([questaoId, letra]) // 1 alternativa por letra/questão
+  @@index([questaoId])         // acelera joins
 }
