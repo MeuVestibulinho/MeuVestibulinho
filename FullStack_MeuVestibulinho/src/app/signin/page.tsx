@@ -1,4 +1,3 @@
-// app/(auth)/signin/page.tsx (exemplo de caminho)
 import type { ReactElement } from "react";
 import { redirect } from "next/navigation";
 import { signIn, providerMap } from "~/server/auth";
@@ -8,29 +7,18 @@ import { SiGoogle, SiDiscord, SiKeycloak } from "react-icons/si";
 
 const SIGNIN_ERROR_URL = "/error";
 
-// Use ReactElement (evita depender do namespace global JSX)
 const providerIcons: Record<string, ReactElement> = {
   google: <SiGoogle className="h-6 w-6" />,
   discord: <SiDiscord className="h-6 w-6" />,
   keycloak: <SiKeycloak className="h-6 w-6" />,
 };
 
-// Tipagem mínima para o provider que você renderiza
 type UiProvider = { id: string; name: string };
 
 export default async function SignInPage(props: {
   searchParams: { callbackUrl?: string };
 }) {
-  // Se providerMap NÃO for array, transforme em array de valores:
-  // (Descomente UMA das linhas abaixo conforme o tipo real do seu providerMap)
-
-  // Caso providerMap seja um Record<string, { id, name, ... }>
-  // const providers: UiProvider[] = Object.values(providerMap as Record<string, UiProvider>);
-
-  // Caso providerMap seja um Map<string, { id, name, ... }>
-  // const providers: UiProvider[] = Array.from((providerMap as Map<string, UiProvider>).values());
-
-  // Caso providerMap já seja UiProvider[]
+  // Ajuste conforme o tipo real do providerMap:
   const providers: UiProvider[] = providerMap as unknown as UiProvider[];
 
   return (
@@ -47,6 +35,7 @@ export default async function SignInPage(props: {
           {providers.map((provider) => (
             <form
               key={provider.id}
+              className="w-full flex justify-center" // centraliza o botão dentro do card
               action={async () => {
                 "use server";
                 try {
@@ -64,9 +53,9 @@ export default async function SignInPage(props: {
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 text-sm font-medium hover:scale-105 transition-transform"
+                className="flex items-center gap-3 px-6 py-3 text-sm font-medium hover:scale-105 transition-transform"
               >
-                {providerIcons[provider.id] ?? null}
+                <span className="flex-shrink-0">{providerIcons[provider.id] ?? null}</span>
                 <span>Entrar com {provider.name}</span>
               </Button>
             </form>
