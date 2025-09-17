@@ -105,7 +105,7 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 export const questaoRouter = createTRPCRouter({
   recent: protectedProcedure
-    .input(z.object({ take: z.number().int().min(1).max(50).default(20) }).optional())
+    .input(z.object({ take: z.number().int().min(1).max(100).default(20) }).optional())
     .query(async ({ ctx, input }) => {
       const take = input?.take ?? 20;
       const items = await ctx.db.questao.findMany({
