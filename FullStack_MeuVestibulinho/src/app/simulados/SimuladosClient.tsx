@@ -40,8 +40,8 @@ function coverForYear(ano: number): string {
 }
 
 function SimuladoCard({ simulado, onSelect }: { simulado: Simulado; onSelect: () => void }) {
-  const { ano, titulo, questoes, tempoLimiteMinutos } = simulado;
-  const capa = ano ? coverForYear(ano) : COVER_FALLBACK;
+  const { ano, titulo, questoes, tempoLimiteMinutos, coverImageUrl, descricao } = simulado;
+  const capa = coverImageUrl ?? (ano ? coverForYear(ano) : COVER_FALLBACK);
 
   return (
     <button
@@ -67,8 +67,9 @@ function SimuladoCard({ simulado, onSelect }: { simulado: Simulado; onSelect: ()
         </div>
         <h3 className="text-xl font-semibold text-gray-900">{titulo}</h3>
         <p className="text-sm text-gray-600">
-          Prepare-se com {formatQuestaoCount(questoes)} selecionadas desse ano. Receba feedback imediato de acertos e erros ao
-          longo da resolução.
+          {descricao
+            ? descricao
+            : `Prepare-se com ${formatQuestaoCount(questoes)} selecionadas desse ano. Resolva com foco total e receba um relatório completo de desempenho ao final.`}
         </p>
         <div className="mt-auto flex items-center justify-between text-sm font-semibold text-red-600">
           <span>{formatQuestaoCount(questoes)}</span>
@@ -127,7 +128,7 @@ export default function SimuladosClient({ simulados }: Props) {
             <p className="mt-3 text-sm text-gray-700">
               O simulado oficial do Vestibulinho possui 50 questões e limite de {formatTempo(modalState.simulado.tempoLimiteMinutos)}.
               Nesta plataforma você resolverá {formatQuestaoCount(modalState.simulado.questoes)} selecionadas desse ano, com um
-              ambiente completo de prova e relatório final.
+              ambiente completo de prova e relatório final com estatísticas detalhadas ao término.
             </p>
             <div className="mt-6 flex flex-wrap justify-end gap-3">
               <button

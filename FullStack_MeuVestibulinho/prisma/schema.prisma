@@ -29,6 +29,9 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
+  statistics    UserStatistics?
+  blacklistLogs EmailBlacklist[] @relation("EmailBlacklistCreatedBy")
+  simuladosAtualizados SimuladoMetadata[] @relation("SimuladoMetadataUpdatedBy")
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -79,6 +82,49 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model EmailBlacklist {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  reason      String?
+  createdById String?
+  createdBy   User?    @relation("EmailBlacklistCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+}
+
+model UserStatistics {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  totalAcertos         Int      @default(0)
+  totalErros           Int      @default(0)
+  totalPuladas         Int      @default(0)
+  simuladosConcluidos  Int      @default(0)
+  totalQuestoes        Int      @default(0)
+  tempoMedioSegundos   Float    @default(0)
+  conteudosMaiorAcerto Json     @default("[]")
+  conteudosMenorAcerto Json     @default("[]")
+  detalhes             Json     @default("{}")
+  tempoTotalSegundos   Int      @default(0)
+
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model SimuladoMetadata {
+  id             String   @id @default(cuid())
+  ano            Int      @unique
+  titulo         String?
+  descricao      String?
+  coverImageUrl  String?
+  updatedById    String?
+  updatedBy      User?    @relation("SimuladoMetadataUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 /* ========================================================================

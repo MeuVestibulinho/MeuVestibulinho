@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -6,6 +5,7 @@ import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import type { inferRouterOutputs } from "@trpc/server";
 
+import { api } from "~/trpc/react";
 import type { AppRouter } from "~/server/api/root";
 
 function labelize(value: string): string {
@@ -27,18 +27,29 @@ function formatSeconds(totalSeconds: number): string {
 
 type SimuladoDetalhes = inferRouterOutputs<AppRouter>["questao"]["simuladoDetalhes"];
 
-type AnswerStatus = "unanswered" | "skipped" | "correct" | "incorrect";
-
 type AnswerState = {
   selectedAlternativeId: string | null;
-  status: AnswerStatus;
-};
-
-type Props = {
-  simulado: SimuladoDetalhes;
+  skipped: boolean;
 };
 
 type FinalizationReason = "manual" | "timeout";
+
+type ConteudoAggregate = {
+  conteudo: string;
+  subconteudo: string;
+  acertos: number;
+  erros: number;
+};
+
+type QuestionOutcome = "correct" | "incorrect" | "skipped";
+
+type EvaluationResult = {
+  correct: number;
+  incorrect: number;
+  skipped: number;
+  conteudos: ConteudoAggregate[];
+  outcomes: Record<string, QuestionOutcome>;
+};
 
 type ReportResumo = {
   conteudo: string;
@@ -59,10 +70,26 @@ type ReportData = {
   conteudosErros: ReportResumo[];
 };
 
-export default function SimuladoRunner({ simulado }: Props) {
+const NAVIGATION_STATUS_CLASSES: Record<string, string> = {
+  correct: "bg-green-100 text-green-700 border-green-200",
+  incorrect: "bg-red-100 text-red-700 border-red-200",
+  skipped: "bg-amber-100 text-amber-800 border-amber-200",
+  answered: "bg-blue-100 text-blue-700 border-blue-200",
+  pending: "bg-gray-100 text-gray-600 border-gray-200",
+};
+
+export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhes }) {
   const router = useRouter();
+  const utils = api.useUtils();
+  const recordMutation = api.stats.recordSimulado.useMutation({
+    onSuccess: () => {
+      void utils.stats.getOwn.invalidate();
+    },
+  });
+
   const totalQuestoes = simulado.questoes.length;
   const startTimestampRef = React.useRef<number>(Date.now());
+  const recordedRef = React.useRef(false);
 
   const [questionOrder, setQuestionOrder] = React.useState<string[]>(() =>
     simulado.questoes.map((questao) => questao.id),
@@ -71,7 +98,7 @@ export default function SimuladoRunner({ simulado }: Props) {
   const [answers, setAnswers] = React.useState<Record<string, AnswerState>>(() => {
     const initial: Record<string, AnswerState> = {};
     for (const questao of simulado.questoes) {
-      initial[questao.id] = { selectedAlternativeId: null, status: "unanswered" };
+      initial[questao.id] = { selectedAlternativeId: null, skipped: false };
     }
     return initial;
   });
@@ -94,32 +121,26 @@ export default function SimuladoRunner({ simulado }: Props) {
   const currentAnswer = currentQuestionId ? answers[currentQuestionId] : undefined;
 
   const stats = React.useMemo(() => {
-    let correct = 0;
-    let incorrect = 0;
+    let answered = 0;
     let skipped = 0;
 
     Object.values(answers).forEach((answer) => {
       if (!answer) return;
-      if (answer.status === "correct") correct += 1;
-      else if (answer.status === "incorrect") incorrect += 1;
-      else if (answer.status === "skipped") skipped += 1;
+      if (answer.selectedAlternativeId) {
+        answered += 1;
+      }
+      if (answer.skipped && !answer.selectedAlternativeId) {
+        skipped += 1;
+      }
     });
 
-    return {
-      correct,
-      incorrect,
-      skipped,
-      answered: correct + incorrect,
-    };
-  }, [answers]);
+    const remaining = Math.max(0, totalQuestoes - answered);
+    return { answered, skipped, remaining };
+  }, [answers, totalQuestoes]);
 
   const allAnswered = React.useMemo(
-    () =>
-      questionOrder.every((id) => {
-        const answer = answers[id];
-        return answer && (answer.status === "correct" || answer.status === "incorrect");
-      }),
-    [answers, questionOrder],
+    () => simulado.questoes.every((questao) => !!answers[questao.id]?.selectedAlternativeId),
+    [answers, simulado.questoes],
   );
 
   const progressPercent = totalQuestoes === 0 ? 0 : Math.round((stats.answered / totalQuestoes) * 100);
@@ -171,14 +192,14 @@ export default function SimuladoRunner({ simulado }: Props) {
       if (status === "finished") return;
       const questao = questoesMap.get(questaoId);
       if (!questao) return;
-      const alternativa = questao.alternativas.find((alt) => alt.id === alternativaId);
-      if (!alternativa) return;
+      const alternativaExiste = questao.alternativas.some((alt) => alt.id === alternativaId);
+      if (!alternativaExiste) return;
 
       setAnswers((prev) => ({
         ...prev,
         [questaoId]: {
           selectedAlternativeId: alternativaId,
-          status: alternativa.correta ? "correct" : "incorrect",
+          skipped: false,
         },
       }));
     },
@@ -190,7 +211,7 @@ export default function SimuladoRunner({ simulado }: Props) {
     const questaoId = questionOrder[currentIndex];
     if (!questaoId) return;
     const answer = answers[questaoId];
-    if (answer && (answer.status === "correct" || answer.status === "incorrect")) {
+    if (answer?.selectedAlternativeId) {
       return;
     }
 
@@ -202,7 +223,7 @@ export default function SimuladoRunner({ simulado }: Props) {
       ...prev,
       [questaoId]: {
         selectedAlternativeId: null,
-        status: "skipped",
+        skipped: true,
       },
     }));
 
@@ -252,68 +273,114 @@ export default function SimuladoRunner({ simulado }: Props) {
     [questoesMap, questionOrder],
   );
 
-  const summarizeConteudo = React.useCallback(
-    (predicate: (answer: AnswerState | undefined) => boolean): ReportResumo[] => {
-      const map = new Map<string, ReportResumo>();
-      simulado.questoes.forEach((questao) => {
-        const answer = answers[questao.id];
-        if (!predicate(answer)) {
-          return;
-        }
-        const key = `${questao.conteudo}|${questao.subconteudo}`;
-        const current = map.get(key);
-        if (current) {
-          current.quantidade += 1;
-        } else {
-          map.set(key, {
-            conteudo: questao.conteudo,
-            subconteudo: questao.subconteudo,
-            quantidade: 1,
-          });
-        }
-      });
-      return Array.from(map.values());
-    },
-    [answers, simulado.questoes],
-  );
+  const evaluation = React.useMemo<EvaluationResult | null>(() => {
+    if (status !== "finished") {
+      return null;
+    }
+
+    const conteudosMap = new Map<string, ConteudoAggregate>();
+    const outcomes: Record<string, QuestionOutcome> = {};
+    let correct = 0;
+    let incorrect = 0;
+    let skipped = 0;
+
+    for (const questao of simulado.questoes) {
+      const answer = answers[questao.id];
+      const selectedId = answer?.selectedAlternativeId ?? null;
+      const key = `${questao.conteudo}|${questao.subconteudo}`;
+      const aggregate =
+        conteudosMap.get(key) ??
+        ({ conteudo: questao.conteudo, subconteudo: questao.subconteudo, acertos: 0, erros: 0 } as ConteudoAggregate);
+
+      if (!selectedId) {
+        skipped += 1;
+        aggregate.erros += 1;
+        conteudosMap.set(key, aggregate);
+        outcomes[questao.id] = "skipped";
+        continue;
+      }
+
+      const alternativaSelecionada = questao.alternativas.find((alt) => alt.id === selectedId);
+      if (alternativaSelecionada?.correta) {
+        correct += 1;
+        aggregate.acertos += 1;
+        outcomes[questao.id] = "correct";
+      } else {
+        incorrect += 1;
+        aggregate.erros += 1;
+        outcomes[questao.id] = "incorrect";
+      }
+
+      conteudosMap.set(key, aggregate);
+    }
+
+    return {
+      correct,
+      incorrect,
+      skipped,
+      conteudos: Array.from(conteudosMap.values()),
+      outcomes,
+    };
+  }, [answers, simulado.questoes, status]);
 
   const report = React.useMemo<ReportData | null>(() => {
-    if (status !== "finished" || !finishedAt) {
+    if (status !== "finished" || !finishedAt || !evaluation) {
       return null;
     }
 
     const totalSeconds = Math.max(1, Math.round((finishedAt - startTimestampRef.current) / 1000));
-    const percentual = totalQuestoes === 0 ? 0 : (stats.correct / totalQuestoes) * 100;
+    const percentual = totalQuestoes === 0 ? 0 : (evaluation.correct / totalQuestoes) * 100;
 
-    const conteudosAcertos = summarizeConteudo((answer) => answer?.status === "correct");
-    const conteudosErros = summarizeConteudo((answer) =>
-      answer?.status === "incorrect" || answer?.status === "skipped",
-    ).map((item) => ({
-      ...item,
-      recomendacao: `Reforce os estudos em ${item.conteudo} (${item.subconteudo}) com revisão teórica e exercícios aplicados.`,
-    }));
+    const conteudosAcertos: ReportResumo[] = evaluation.conteudos
+      .filter((item) => item.acertos > 0)
+      .map((item) => ({
+        conteudo: item.conteudo,
+        subconteudo: item.subconteudo,
+        quantidade: item.acertos,
+      }));
+
+    const conteudosErros: ReportResumo[] = evaluation.conteudos
+      .filter((item) => item.erros > 0)
+      .map((item) => ({
+        conteudo: item.conteudo,
+        subconteudo: item.subconteudo,
+        quantidade: item.erros,
+        recomendacao: `Reforce os estudos em ${item.conteudo} (${item.subconteudo}) com revisão teórica e novos exercícios.`,
+      }));
 
     return {
       totalQuestoes,
-      acertos: stats.correct,
-      erros: stats.incorrect,
-      puladas: stats.skipped,
+      acertos: evaluation.correct,
+      erros: evaluation.incorrect,
+      puladas: evaluation.skipped,
       percentualAcerto: Number.isFinite(percentual) ? Math.round(percentual * 10) / 10 : 0,
       tempoTotal: formatSeconds(totalSeconds),
       tempoMedio: formatSeconds(Math.round(totalSeconds / Math.max(1, totalQuestoes))),
       conteudosAcertos,
       conteudosErros,
     };
-  }, [finishedAt, stats, status, summarizeConteudo, totalQuestoes]);
+  }, [evaluation, finishedAt, status, totalQuestoes]);
+
+  React.useEffect(() => {
+    if (status !== "finished" || !evaluation || !finishedAt || recordedRef.current) {
+      return;
+    }
+
+    recordedRef.current = true;
+    const totalSeconds = Math.max(0, Math.round((finishedAt - startTimestampRef.current) / 1000));
+    recordMutation.mutate({
+      simuladoAno: simulado.ano,
+      totalQuestoes,
+      acertos: evaluation.correct,
+      erros: evaluation.incorrect,
+      puladas: evaluation.skipped,
+      tempoTotalSegundos: totalSeconds,
+      conteudos: evaluation.conteudos,
+    });
+  }, [evaluation, finishedAt, recordMutation, simulado.ano, status, totalQuestoes]);
 
   const tempoRestanteCritico = timeRemaining <= 5 * 60;
-  const canSkip =
-    status !== "finished" &&
-    !!currentAnswer &&
-    currentAnswer.status !== "correct" &&
-    currentAnswer.status !== "incorrect" &&
-    questionOrder.length > 0;
-
+  const canSkip = status !== "finished" && !!currentQuestion && !currentAnswer?.selectedAlternativeId;
   const canNavigatePrev = currentIndex > 0;
   const canNavigateNext = currentIndex < questionOrder.length - 1;
 
@@ -323,7 +390,8 @@ export default function SimuladoRunner({ simulado }: Props) {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold text-gray-900">{simulado.titulo}</h1>
           <p className="text-sm text-gray-600">
-            Tempo limite de {simulado.tempoLimiteMinutos / 60} horas · {totalQuestoes} questão{totalQuestoes === 1 ? "" : "es"}
+            Tempo limite de {simulado.tempoLimiteMinutos / 60} horas · {totalQuestoes} questão
+            {totalQuestoes === 1 ? "" : "es"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -338,17 +406,17 @@ export default function SimuladoRunner({ simulado }: Props) {
               {formatSeconds(timeRemaining)}
             </p>
           </div>
-          <div className="rounded-2xl bg-green-50 px-4 py-2 text-center">
-            <p className="text-[11px] font-semibold uppercase text-green-700">Acertos</p>
-            <p className="text-lg font-semibold text-green-700">{stats.correct}</p>
-          </div>
-          <div className="rounded-2xl bg-red-50 px-4 py-2 text-center">
-            <p className="text-[11px] font-semibold uppercase text-red-700">Erros</p>
-            <p className="text-lg font-semibold text-red-700">{stats.incorrect}</p>
+          <div className="rounded-2xl bg-blue-50 px-4 py-2 text-center">
+            <p className="text-[11px] font-semibold uppercase text-blue-700">Respondidas</p>
+            <p className="text-lg font-semibold text-blue-700">{stats.answered}</p>
           </div>
           <div className="rounded-2xl bg-amber-50 px-4 py-2 text-center">
             <p className="text-[11px] font-semibold uppercase text-amber-700">Puladas</p>
             <p className="text-lg font-semibold text-amber-700">{stats.skipped}</p>
+          </div>
+          <div className="rounded-2xl bg-gray-100 px-4 py-2 text-center">
+            <p className="text-[11px] font-semibold uppercase text-gray-600">Restantes</p>
+            <p className="text-lg font-semibold text-gray-700">{stats.remaining}</p>
           </div>
         </div>
         <div className="w-full md:max-w-xs">
@@ -439,16 +507,14 @@ export default function SimuladoRunner({ simulado }: Props) {
                 {currentQuestion.alternativas.map((alternativa) => {
                   const isSelected = currentAnswer?.selectedAlternativeId === alternativa.id;
                   const isCorrect = alternativa.correta;
-                  const isAnswered =
-                    currentAnswer?.status === "correct" || currentAnswer?.status === "incorrect";
-                  const shouldRevealCorrect = isAnswered || status === "finished";
+                  const shouldRevealCorrect = status === "finished";
 
                   const variant = clsx(
                     "w-full rounded-2xl border px-4 py-3 text-left transition",
-                    isSelected && !shouldRevealCorrect && "border-red-200 bg-red-50",
+                    isSelected && status !== "finished" && "border-red-200 bg-red-50",
                     shouldRevealCorrect && isCorrect && "border-green-300 bg-green-50",
                     shouldRevealCorrect && isSelected && !isCorrect && "border-red-300 bg-red-50",
-                    !isSelected && !isCorrect && "border-gray-200 bg-white hover:border-red-200",
+                    !isSelected && status !== "finished" && "border-gray-200 bg-white hover:border-red-200",
                     status === "finished" && !isCorrect && "opacity-90",
                   );
 
@@ -533,13 +599,20 @@ export default function SimuladoRunner({ simulado }: Props) {
           <div className="grid grid-cols-4 gap-2">
             {orderedQuestoes.map(({ questao, index }) => {
               const answer = answers[questao.id];
-              const isActive = index === currentIndex;
-              const statusClass = (() => {
-                if (answer?.status === "correct") return "bg-green-100 text-green-700 border-green-200";
-                if (answer?.status === "incorrect") return "bg-red-100 text-red-700 border-red-200";
-                if (answer?.status === "skipped") return "bg-amber-100 text-amber-800 border-amber-200";
-                return "bg-gray-100 text-gray-600 border-gray-200";
-              })();
+              let statusKey: string = "pending";
+
+              if (status === "finished" && evaluation?.outcomes) {
+                const outcome = evaluation.outcomes[questao.id];
+                if (outcome) {
+                  statusKey = outcome;
+                }
+              } else if (answer?.selectedAlternativeId) {
+                statusKey = "answered";
+              } else if (answer?.skipped) {
+                statusKey = "skipped";
+              }
+
+              const statusClass = NAVIGATION_STATUS_CLASSES[statusKey] ?? NAVIGATION_STATUS_CLASSES.pending;
 
               return (
                 <button
@@ -549,7 +622,7 @@ export default function SimuladoRunner({ simulado }: Props) {
                   className={clsx(
                     "flex h-10 items-center justify-center rounded-xl border text-sm font-semibold transition",
                     statusClass,
-                    isActive && "ring-2 ring-red-300",
+                    index === currentIndex && "ring-2 ring-red-300",
                   )}
                 >
                   {index + 1}
@@ -561,10 +634,7 @@ export default function SimuladoRunner({ simulado }: Props) {
             <p className="font-semibold text-gray-700">Legenda:</p>
             <ul className="mt-2 space-y-1">
               <li>
-                <span className="inline-block h-2 w-2 rounded-full bg-green-500" /> <span className="ml-1">Respondida corretamente</span>
-              </li>
-              <li>
-                <span className="inline-block h-2 w-2 rounded-full bg-red-500" /> <span className="ml-1">Respondida incorretamente</span>
+                <span className="inline-block h-2 w-2 rounded-full bg-blue-500" /> <span className="ml-1">Respondida</span>
               </li>
               <li>
                 <span className="inline-block h-2 w-2 rounded-full bg-amber-500" /> <span className="ml-1">Pulada</span>
@@ -572,17 +642,28 @@ export default function SimuladoRunner({ simulado }: Props) {
               <li>
                 <span className="inline-block h-2 w-2 rounded-full bg-gray-400" /> <span className="ml-1">Sem resposta</span>
               </li>
+              {status === "finished" && (
+                <React.Fragment>
+                  <li>
+                    <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                    <span className="ml-1">Correta</span>
+                  </li>
+                  <li>
+                    <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
+                    <span className="ml-1">Incorreta</span>
+                  </li>
+                </React.Fragment>
+              )}
             </ul>
+            <p className="mt-2 text-[11px] text-gray-500">
+              Os acertos e erros ficam disponíveis somente após finalizar o simulado.
+            </p>
           </div>
         </aside>
       </div>
 
       {reportVisible && report && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 px-4"
-        >
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 px-4">
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl">
             <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -594,6 +675,17 @@ export default function SimuladoRunner({ simulado }: Props) {
                     ? "Parabéns! Você respondeu todas as questões deste simulado."
                     : "Simulado finalizado. Utilize as recomendações para evoluir."}
                 </p>
+                {recordMutation.isPending && (
+                  <p className="mt-2 text-xs text-gray-500">Salvando suas estatísticas...</p>
+                )}
+                {recordMutation.isError && (
+                  <p className="mt-2 text-xs text-red-600">
+                    Não foi possível registrar suas estatísticas automaticamente. Tente novamente mais tarde.
+                  </p>
+                )}
+                {recordMutation.isSuccess && (
+                  <p className="mt-2 text-xs text-green-600">Estatísticas atualizadas com sucesso!</p>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -655,7 +747,8 @@ export default function SimuladoRunner({ simulado }: Props) {
                         <p className="font-semibold">{item.conteudo}</p>
                         <p className="text-xs text-green-700">{item.subconteudo}</p>
                         <p className="mt-1 text-xs text-green-700">
-                          {item.quantidade} questão{item.quantidade === 1 ? "" : "s"} respondida{item.quantidade === 1 ? "" : "s"} corretamente.
+                          {item.quantidade} questão{item.quantidade === 1 ? "" : "s"} respondida
+                          {item.quantidade === 1 ? "" : "s"} corretamente.
                         </p>
                       </li>
                     ))}

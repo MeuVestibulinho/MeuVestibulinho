@@ -1,6 +1,8 @@
 // importa o roteador de postagens definido em outro arquivo, que contém várias rotas (queries e mutations) relacionadas a postagens
+import { adminRouter } from "~/server/api/routers/admin";
 import { postRouter } from "~/server/api/routers/post";
 import { questaoRouter } from "~/server/api/routers/questao";
+import { statsRouter } from "~/server/api/routers/stats";
 // importa funções para criar o roteador TRPC e o caller do servidor, que permite fazer chamadas às rotas do TRPC no backend
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
@@ -14,6 +16,8 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
   post: postRouter, // adiciona o roteador de postagens como uma sub-rota do roteador principal
   questao: questaoRouter,
+  admin: adminRouter,
+  stats: statsRouter,
 });
 
 // export type definition of API

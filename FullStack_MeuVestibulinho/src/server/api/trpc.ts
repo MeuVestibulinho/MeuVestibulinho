@@ -141,6 +141,15 @@ export const protectedProcedure = t.procedure
     });
   });
 
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  const role = (ctx.session.user as { role?: string | null }).role;
+  if (role !== "ADMIN") {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+
+  return next();
+});
+
 // Nesse arquivo definimos a configuração do tRPC no backend
 
 //Contexto é um objeto que pode conter informações como usuário autenticado, conexões de banco de dados, etc.

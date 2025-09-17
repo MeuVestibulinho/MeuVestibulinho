@@ -8,7 +8,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "~/server/db";
 
 /** Constrói a lista de providers conforme ENVs disponíveis */
-export const providers = [
+export const providers: NonNullable<NextAuthConfig["providers"]> = [
   // Keycloak (habilita se TODAS as ENVs existirem)
   ...(process.env.KEYCLOAK_ISSUER &&
   process.env.KEYCLOAK_CLIENT_ID &&
@@ -55,6 +55,20 @@ export const authConfig: NextAuthConfig = {
   },
 
   callbacks: {
+    async signIn({ user }) {
+      const email = typeof user.email === "string" ? user.email.toLowerCase() : null;
+      if (!email) {
+        return true;
+      }
+
+      const blocked = await db.emailBlacklist.findUnique({ where: { email } });
+      if (blocked) {
+        console.warn(`[auth] Tentativa de acesso bloqueada para o email ${email}`);
+        return false;
+      }
+
+      return true;
+    },
     async session({ session, user }) {
       if (!session.user) {
         return session;

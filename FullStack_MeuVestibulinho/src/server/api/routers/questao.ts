@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
+  adminProcedure,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
@@ -95,15 +96,6 @@ const listInputSchema = z.object({
   orderBy: z.enum(["newest", "oldest"]).default("newest"),
 });
 
-  const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-    const role = (ctx.session.user as { role?: string | null }).role;
-    if (role !== "ADMIN") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
-
-    return next();
-  });
-
 export const questaoRouter = createTRPCRouter({
   recent: protectedProcedure
     .input(z.object({ take: z.number().int().min(1).max(100).default(20) }).optional())
@@ -119,20 +111,31 @@ export const questaoRouter = createTRPCRouter({
     }),
 
   simulados: protectedProcedure.query(async ({ ctx }) => {
-    const grupos = await ctx.db.questao.groupBy({
-      by: ["ano"],
-      where: { ano: { not: null } },
-      _count: { _all: true },
-    });
+    const [grupos, metadados] = await Promise.all([
+      ctx.db.questao.groupBy({
+        by: ["ano"],
+        where: { ano: { not: null } },
+        _count: { _all: true },
+      }),
+      ctx.db.simuladoMetadata.findMany(),
+    ]);
+
+    const metadataMap = new Map(metadados.map((meta) => [meta.ano, meta]));
 
     const itens = grupos
       .filter((grupo): grupo is { ano: number; _count: { _all: number } } => typeof grupo.ano === "number")
-      .map((grupo) => ({
-        ano: grupo.ano,
-        titulo: `Simulado ${grupo.ano}`,
-        questoes: grupo._count._all,
-        tempoLimiteMinutos: 240,
-      }))
+      .map((grupo) => {
+        const metadata = metadataMap.get(grupo.ano) ?? null;
+        return {
+          ano: grupo.ano,
+          titulo: metadata?.titulo ?? `Simulado ${grupo.ano}`,
+          questoes: grupo._count._all,
+          tempoLimiteMinutos: 240,
+          coverImageUrl: metadata?.coverImageUrl ?? null,
+          descricao: metadata?.descricao ?? null,
+          metadataAtualizadaEm: metadata?.updatedAt ?? null,
+        } as const;
+      })
       .sort((a, b) => b.ano - a.ano);
 
     return itens;

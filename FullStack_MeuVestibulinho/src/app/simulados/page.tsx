@@ -29,7 +29,7 @@ export default async function SimuladosPage() {
       <header className="mb-8 space-y-2">
         <h1 className="text-3xl font-semibold text-gray-900">Simulados Inteligentes</h1>
         <p className="max-w-3xl text-sm text-gray-600">
-          Escolha o ano desejado para treinar com questões oficiais. Cada prova oferece tempo limite de 4 horas, feedback em tempo real de acertos e erros e um relatório completo ao finalizar.
+          Escolha o ano desejado para treinar com questões oficiais. Cada prova oferece tempo limite de 4 horas e apresenta um relatório completo com acertos, erros e recomendações somente após a conclusão.
         </p>
       </header>
 
