@@ -44,12 +44,14 @@ export default async function Header() {
   const role = (user as { role?: string } | undefined)?.role;
   const userLabel = user?.name ?? user?.email ?? "Usuário";
 
-  const links: NavLink[] = [
-    ...BASE_LINKS,
-    ...(role === "ADMIN"
-      ? [{ name: "Admin", href: "/admin/questoes", icon: "BookOpen" as const }]
-      : []),
-  ];
+  const links: NavLink[] = !user
+    ? []
+    : [
+        ...BASE_LINKS,
+        ...(role === "ADMIN"
+          ? [{ name: "Admin", href: "/admin/questoes", icon: "BookOpen" as const }]
+          : []),
+      ];
 
   const RightSlot = (
     <>

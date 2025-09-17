@@ -119,6 +119,9 @@ model Questao {
   ano             Int?
   fonteUrl        String?          @db.Text
   imagemUrl       String?          @db.Text
+  habilidades     String           @db.Text
+  conteudo        String           @db.Text
+  subconteudo     String           @db.Text
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt

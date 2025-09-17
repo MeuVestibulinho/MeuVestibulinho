@@ -1,5 +1,5 @@
 // prisma/seed.cjs
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient, Alternativa } = require("@prisma/client");
 
 const db = new PrismaClient();
 
@@ -24,6 +24,14 @@ async function main() {
     return;
   }
 
+  const alternativas = [
+    { letra: Alternativa.A, texto: "R$ 140,00", correta: false },
+    { letra: Alternativa.B, texto: "R$ 144,00", correta: true },
+    { letra: Alternativa.C, texto: "R$ 150,00", correta: false },
+    { letra: Alternativa.D, texto: "R$ 160,00", correta: false },
+    { letra: Alternativa.E, texto: "R$ 180,00", correta: false },
+  ];
+
   const created = await db.questao.create({
     data: {
       enunciado,
@@ -32,26 +40,17 @@ async function main() {
       grauDificuldade,
       fonteUrl: "https://www.vestibulinhoetec.com.br/provas/2025-1s.pdf",
       imagemUrl: null,
+      habilidades: "Análise de porcentagem e descontos sucessivos",
+      conteudo: "Porcentagem aplicada a situações de desconto composto",
+      subconteudo: "Descontos sucessivos e cálculo percentual",
       alternativas: {
-        create: [
-          { letra: "A", texto: "R$ 140,00", correta: false },
-          { letra: "B", texto: "R$ 144,00", correta: true },
-          { letra: "C", texto: "R$ 150,00", correta: false },
-          { letra: "D", texto: "R$ 160,00", correta: false },
-          { letra: "E", texto: "R$ 180,00", correta: false },
-        ],
+        create: alternativas,
       },
     },
-    select: {
-      id: true,
-      alternativas: {
-        select: { letra: true, correta: true },
-        orderBy: { letra: "asc" },
-      },
-    },
+    select: { id: true },
   });
 
-  const gabarito = created.alternativas
+  const gabarito = alternativas
     .filter((alt) => alt.correta)
     .map((alt) => alt.letra)
     .join(", ");

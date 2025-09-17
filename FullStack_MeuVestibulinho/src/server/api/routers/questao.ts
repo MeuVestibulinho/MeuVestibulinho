@@ -17,6 +17,9 @@ const questaoWithAlternativasSelect = {
   ano: true,
   fonteUrl: true,
   imagemUrl: true,
+  habilidades: true,
+  conteudo: true,
+  subconteudo: true,
   createdAt: true,
   updatedAt: true,
   alternativas: {
@@ -44,6 +47,9 @@ const createQuestaoSchema = z
     ano: z.number().int().min(1900).max(2100).optional(),
     fonteUrl: z.string().url().optional(),
     imagemUrl: z.string().url().optional(),
+    habilidades: z.string().trim().min(3, "Informe as habilidades"),
+    conteudo: z.string().trim().min(3, "Informe o conteúdo"),
+    subconteudo: z.string().trim().min(3, "Informe o subconteúdo"),
     alternativas: z.array(alternativasSchema).min(2).max(5),
   })
   .refine(
@@ -63,6 +69,9 @@ const updateQuestaoSchema = z
     ano: z.number().int().min(1900).max(2100).nullable().optional(),
     fonteUrl: z.string().url().nullable().optional(),
     imagemUrl: z.string().url().nullable().optional(),
+    habilidades: z.string().trim().min(3).optional(),
+    conteudo: z.string().trim().min(3).optional(),
+    subconteudo: z.string().trim().min(3).optional(),
     alternativas: z.array(alternativasSchema).min(2).max(5).optional(),
   })
   .refine(
@@ -95,7 +104,7 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 });
 
 export const questaoRouter = createTRPCRouter({
-  recent: publicProcedure
+  recent: protectedProcedure
     .input(z.object({ take: z.number().int().min(1).max(50).default(20) }).optional())
     .query(async ({ ctx, input }) => {
       const take = input?.take ?? 20;
@@ -108,7 +117,7 @@ export const questaoRouter = createTRPCRouter({
       return { items };
     }),
 
-  list: publicProcedure.input(listInputSchema).query(async ({ ctx, input }) => {
+  list: adminProcedure.input(listInputSchema).query(async ({ ctx, input }) => {
     const where: Prisma.QuestaoWhereInput = {
       ...(input.search
         ? {
@@ -180,6 +189,9 @@ export const questaoRouter = createTRPCRouter({
         ano: input.ano ?? null,
         fonteUrl: input.fonteUrl ?? null,
         imagemUrl: input.imagemUrl ?? null,
+        habilidades: input.habilidades,
+        conteudo: input.conteudo,
+        subconteudo: input.subconteudo,
         alternativas: {
           create: input.alternativas.map((alt) => ({
             letra: alt.letra,
@@ -212,6 +224,9 @@ export const questaoRouter = createTRPCRouter({
       if (typeof data.ano !== "undefined") updateData.ano = data.ano;
       if (typeof data.fonteUrl !== "undefined") updateData.fonteUrl = data.fonteUrl;
       if (typeof data.imagemUrl !== "undefined") updateData.imagemUrl = data.imagemUrl;
+      if (typeof data.habilidades !== "undefined") updateData.habilidades = data.habilidades;
+      if (typeof data.conteudo !== "undefined") updateData.conteudo = data.conteudo;
+      if (typeof data.subconteudo !== "undefined") updateData.subconteudo = data.subconteudo;
 
       if (data.alternativas) {
         await ctx.db.$transaction([
