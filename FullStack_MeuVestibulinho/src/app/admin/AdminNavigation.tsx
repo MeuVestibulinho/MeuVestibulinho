@@ -35,7 +35,7 @@ export default function AdminNavigation() {
   };
 
   return (
-    <nav className="border-b border-gray-200 bg-white/80 backdrop-blur">
+      <nav className="fixed top-16 left-0 right-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur">
       <div className="container mx-auto flex max-w-7xl gap-2 px-4 py-4">
         {NAV_ITEMS.map((item) => {
           const isActive = item.view === currentView;
