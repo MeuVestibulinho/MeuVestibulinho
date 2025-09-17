@@ -2,7 +2,7 @@
 import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
 import NewQuestionForm from "./NewQuestionForm";
-import { Disciplina, GrauDificuldade } from "@prisma/client";
+import { Alternativa, Disciplina, GrauDificuldade } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -11,12 +11,13 @@ export default async function AdminQuestoesPage() {
   if (!session) {
     redirect("/api/auth/signin?callbackUrl=/admin/questoes");
   }
-  // Se já ativou RBAC:
-  // if (session.user.role !== "ADMIN") redirect("/");
+  if (session.user.role !== "ADMIN") {
+    redirect("/");
+  }
 
   const disciplinaOptions = Object.values(Disciplina);
   const grauOptions = Object.values(GrauDificuldade);
-  const letraOptions = ["A", "B", "C", "D", "E"];
+  const letraOptions = Object.values(Alternativa);
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-12 pt-24">

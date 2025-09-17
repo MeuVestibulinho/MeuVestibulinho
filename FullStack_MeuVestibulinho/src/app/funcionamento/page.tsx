@@ -18,12 +18,16 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+type IconComponent = React.ComponentType<
+  React.SVGProps<SVGSVGElement> & { size?: number }
+>;
+
 const Section = ({
   icon: Icon,
   title,
   children,
 }: {
-  icon: any;
+  icon: IconComponent;
   title: string;
   children: React.ReactNode;
 }) => (

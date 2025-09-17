@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { env } from "~/env";
 
 // Se estiver usando Next.js (App Router), para isso virar uma rota acessível em /guia
 // mova este arquivo para: src/app/guia/page.tsx
@@ -47,7 +48,7 @@ export default function GuiaPage() {
         <ul style={{ paddingLeft: "1.1rem", margin: 0 }}>
           <li>Hora atual: {hora}</li>
           <li>Montado em: {mountTime}</li>
-          <li>Environment: {process.env.NODE_ENV}</li>
+          <li>Environment: {env.NEXT_PUBLIC_APP_ENV}</li>
         </ul>
       </section>
 

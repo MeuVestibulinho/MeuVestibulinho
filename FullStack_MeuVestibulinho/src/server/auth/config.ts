@@ -1,5 +1,6 @@
 // src/server/auth/config.ts
 import type { NextAuthConfig, User } from "next-auth";
+import type { UserRole } from "@prisma/client";
 import KeycloakProvider from "next-auth/providers/keycloak";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
@@ -83,6 +84,7 @@ const providers = [
               id: user.id,
               email: user.email ?? undefined,
               name: user.name ?? undefined,
+              role: user.role,
             };
           },
         }),
@@ -100,9 +102,26 @@ export const authConfig: NextAuthConfig = {
 
   callbacks: {
     async session({ session, user }) {
-      if (session.user && user) {
-        (session.user as typeof session.user & { id: string }).id = user.id;
+      if (!session.user) {
+        return session;
       }
+
+      (session.user as typeof session.user & { id: string }).id = user?.id ?? session.user.id;
+
+      if (user?.role) {
+        (session.user as typeof session.user & { role: UserRole }).role = user.role;
+        return session;
+      }
+
+      if (!session.user.role) {
+        const dbUser = await db.user.findUnique({
+          where: { id: session.user.id },
+          select: { role: true },
+        });
+
+        (session.user as typeof session.user & { role: UserRole }).role = dbUser?.role ?? "USER";
+      }
+
       return session;
     },
   },

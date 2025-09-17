@@ -20,6 +20,10 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 
+type IconComponent = React.ComponentType<
+  React.SVGProps<SVGSVGElement> & { size?: number }
+>;
+
 const EMAIL = "3and3software@gmail.com";
 const PHONE = "(11) 91023-2912";
 const CITY = "São Paulo, Brasil";
@@ -75,7 +79,7 @@ const socialLinks = [
 
 interface FooterSectionProps {
   title: string;
-  links: Array<{ name: string; href: string; icon?: any }>;
+  links: Array<{ name: string; href: string; icon?: IconComponent }>;
   delay?: number;
 }
 

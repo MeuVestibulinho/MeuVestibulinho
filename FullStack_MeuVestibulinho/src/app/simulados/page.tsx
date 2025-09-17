@@ -1,56 +1,36 @@
-// src/app/simulados/page.tsx
-import React from "react";
-import { Prisma } from "@prisma/client";
-import { db } from "~/server/db";
-// Se preferir evitar alias, use: import { db } from "../../server/db";
+import Image from "next/image";
+import type { inferRouterOutputs } from "@trpc/server";
+
+import { api } from "~/trpc/server";
+import type { AppRouter } from "~/server/api/root";
 
 export const dynamic = "force-dynamic";
 
-// Select tipado (mantém literais `true`)
-const selectFull = {
-  id: true,
-  anoProva: true,
-  edicao: true,
-  instituicao: true,
-  urlProva: true,
-  disciplina: true,
-  tema: true,
-  subtema: true,
-  grauDificuldade: true,
-  habilidade: true,
-  enunciado: true,
-  imagemUrl: true,
-  alternativaA: true,
-  alternativaB: true,
-  alternativaC: true,
-  alternativaD: true,
-  alternativaE: true,
-  respostaCorreta: true,
-  resolucaoTexto: true,
-  resolucaoImagem: true,
-  fonteReferencia: true,
-  tags: true,
-  tempoMedioResolucaoMin: true,
-  percentualAcerto: true,
-  usosEmSimulados: true,
-  createdAt: true,
-} as const;
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" });
 
-type QuestaoCard = Prisma.QuestaoGetPayload<{ select: typeof selectFull }>;
+type RecentQuestao = inferRouterOutputs<AppRouter>["questao"]["recent"]["items"][number];
 
 function labelize(input: string): string {
   return input
     .toLowerCase()
     .replace(/_/g, " ")
-    .replace(/^\w|\s\w/g, (m) => m.toUpperCase());
+    .replace(/^\w|\s\w/g, (match) => match.toUpperCase());
 }
 
-async function SimuladosPage(): Promise<JSX.Element> {
-  const questoes: QuestaoCard[] = await db.questao.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 20,
-    select: selectFull,
-  });
+function formatCreatedAt(date: Date): string {
+  return dateFormatter.format(date);
+}
+
+function buildCorrectLabel(questao: RecentQuestao): string {
+  const letters = questao.alternativas
+    .filter((alt) => alt.correta)
+    .map((alt) => alt.letra)
+    .join(", ");
+  return letters || "—";
+}
+
+export default async function SimuladosPage() {
+  const { items: questoes } = await api.questao.recent({ take: 20 });
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -65,136 +45,86 @@ async function SimuladosPage(): Promise<JSX.Element> {
         </div>
       ) : (
         <ul className="space-y-6">
-          {questoes.map((q) => (
-            <li
-              key={q.id}
-              className="rounded-2xl border bg-white shadow-sm transition hover:shadow-md"
-            >
-              <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3 text-sm text-gray-600">
-                <span className="rounded-full bg-gray-50 px-3 py-1 font-medium text-gray-700">
-                  {q.anoProva} • {q.edicao}
-                </span>
-                <span className="rounded-full bg-gray-50 px-3 py-1">{q.instituicao}</span>
-                <span className="rounded-full bg-gray-50 px-3 py-1">
-                  {labelize(String(q.disciplina))}
-                </span>
-                <span className="rounded-full bg-gray-50 px-3 py-1">
-                  {labelize(String(q.grauDificuldade))}
-                </span>
-                {q.habilidade && (
-                  <span className="rounded-full bg-gray-50 px-3 py-1">Habilidade: {q.habilidade}</span>
-                )}
-                {(q.tema || q.subtema) && (
-                  <span className="rounded-full bg-gray-50 px-3 py-1">
-                    {q.tema ?? "-"}
-                    {q.subtema ? ` › ${q.subtema}` : ""}
-                  </span>
-                )}
-                {q.urlProva && (
-                  <a
-                    href={q.urlProva}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="ml-auto underline underline-offset-2 hover:text-red-600"
-                  >
-                    Prova oficial
-                  </a>
-                )}
-              </div>
+          {questoes.map((questao) => {
+            const correctAnswer = buildCorrectLabel(questao);
 
-              <div className="space-y-4 px-5 py-5">
-                <p className="text-base leading-relaxed text-gray-900">{q.enunciado}</p>
-
-                {q.imagemUrl && (
-                  <div className="overflow-hidden rounded-xl border">
-                    <img
-                      src={q.imagemUrl}
-                      alt="Imagem da questão"
-                      className="max-h-[420px] w-full object-contain"
-                    />
-                  </div>
-                )}
-
-                <div className="mt-2 grid gap-2">
-                  {([
-                    ["A", q.alternativaA],
-                    ["B", q.alternativaB],
-                    ["C", q.alternativaC],
-                    ["D", q.alternativaD],
-                    ["E", q.alternativaE],
-                  ] as const).map(([letter, text]) => (
-                    <div
-                      key={letter}
-                      className="group flex items-start gap-3 rounded-lg border px-3 py-2 transition hover:border-red-300 hover:bg-red-50/40"
-                    >
-                      <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-gray-100 px-1 text-xs font-semibold text-gray-700">
-                        {letter}
-                      </span>
-                      <span className="text-sm text-gray-900">{text}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 pt-2 text-xs text-gray-600">
-                  {q.tags.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1">
-                      {q.tags.map((t) => (
-                        <span key={t} className="rounded-full bg-gray-50 px-2 py-0.5">
-                          #{t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {q.tempoMedioResolucaoMin != null && (
-                    <span className="rounded-full bg-gray-50 px-2 py-0.5">⏱ {q.tempoMedioResolucaoMin} min</span>
-                  )}
-                  {q.percentualAcerto != null && (
-                    <span className="rounded-full bg-gray-50 px-2 py-0.5">
-                      🎯 {q.percentualAcerto.toString()}%
+            return (
+              <li
+                key={questao.id}
+                className="rounded-2xl border bg-white shadow-sm transition hover:shadow-md"
+              >
+                <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3 text-sm text-gray-600">
+                  {typeof questao.ano === "number" && (
+                    <span className="rounded-full bg-gray-50 px-3 py-1 font-medium text-gray-700">
+                      Ano {questao.ano}
                     </span>
                   )}
-                  {q.usosEmSimulados > 0 && (
-                    <span className="rounded-full bg-gray-50 px-2 py-0.5">📚 usado {q.usosEmSimulados}x</span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">
+                    {labelize(questao.disciplina)}
+                  </span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">
+                    {labelize(questao.grauDificuldade)}
+                  </span>
+                  <span className="rounded-full bg-gray-50 px-3 py-1">
+                    Cadastrada em {formatCreatedAt(questao.createdAt)}
+                  </span>
+                  {questao.fonteUrl && (
+                    <a
+                      href={questao.fonteUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ml-auto underline underline-offset-2 hover:text-red-600"
+                    >
+                      Fonte oficial
+                    </a>
                   )}
                 </div>
 
-                <details className="group rounded-xl border bg-gray-50/60">
-                  <summary className="cursor-pointer select-none rounded-xl px-4 py-2 text-sm font-medium text-gray-800 transition group-open:bg-gray-100">
-                    Ver gabarito e resolução
-                  </summary>
-                  <div className="space-y-3 border-t px-4 py-3">
-                    <p className="text-sm">
-                      <span className="font-semibold text-gray-900">Gabarito:{""}</span>{" "}
-                      <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-green-100 px-2 text-xs font-semibold text-green-700">
-                        {q.respostaCorreta}
-                      </span>
-                    </p>
-                    {q.resolucaoTexto && (
-                      <div className="whitespace-pre-wrap rounded-lg border bg-white px-3 py-2 text-sm text-gray-800">
-                        {q.resolucaoTexto}
-                      </div>
-                    )}
-                    {q.resolucaoImagem && (
-                      <div className="overflow-hidden rounded-lg border bg-white p-2">
-                        <img
-                          src={q.resolucaoImagem}
-                          alt="Imagem da resolução"
-                          className="max-h-[420px] w-full object-contain"
-                        />
-                      </div>
-                    )}
-                    {q.fonteReferencia && (
-                      <p className="text-xs text-gray-600">Fonte: {q.fonteReferencia}</p>
-                    )}
+                <div className="space-y-4 px-5 py-5">
+                  <p className="text-base leading-relaxed text-gray-900">{questao.enunciado}</p>
+
+                  {questao.imagemUrl && (
+                    <div className="relative h-[420px] w-full overflow-hidden rounded-xl border">
+                      <Image
+                        src={questao.imagemUrl}
+                        alt="Imagem da questão"
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 768px) 100vw, 768px"
+                      />
+                    </div>
+                  )}
+
+                  <div className="mt-2 grid gap-2">
+                    {questao.alternativas.map((alt) => {
+                      const isCorrect = alt.correta;
+                      return (
+                        <div
+                          key={alt.id}
+                          className={`group flex items-start gap-3 rounded-lg border px-3 py-2 transition hover:border-red-300 hover:bg-red-50/40 ${
+                            isCorrect ? "border-green-300 bg-green-50/60" : "border-gray-200"
+                          }`}
+                        >
+                          <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-gray-100 px-1 text-xs font-semibold text-gray-700">
+                            {alt.letra}
+                          </span>
+                          <span className="text-sm text-gray-900">{alt.texto}</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                </details>
-              </div>
-            </li>
-          ))}
+
+                  <div className="flex flex-wrap items-center gap-3 border-t pt-3 text-xs text-gray-600">
+                    <span className="rounded-full bg-gray-50 px-2 py-0.5 font-medium">
+                      Gabarito: {correctAnswer}
+                    </span>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>
   );
 }
-
-export default SimuladosPage;

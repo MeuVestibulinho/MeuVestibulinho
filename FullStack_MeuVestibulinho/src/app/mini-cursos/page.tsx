@@ -13,7 +13,6 @@ import {
   ChevronDown,
   CheckCircle,
   Lock,
-  Award,
 } from "lucide-react";
 
 type Course = {
@@ -398,7 +397,7 @@ export default function MiniCursosPage() {
                     {/* Rating */}
                     <div className="mb-4 flex items-center gap-2">
                       <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
+                        {Array.from({ length: 5 }, (_, i) => (
                           <Star
                             key={i}
                             size={16}
