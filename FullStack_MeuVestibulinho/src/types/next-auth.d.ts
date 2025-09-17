@@ -7,17 +7,23 @@ declare module "next-auth" {
     user: {
       id: string;
       role: UserRole;
+      username: string | null;
+      avatarEmoji: string;
     } & DefaultSession["user"];
   }
 
   interface User extends DefaultUser {
     id: string;
     role: UserRole;
+    username?: string | null;
+    avatarEmoji?: string | null;
   }
 }
 
 declare module "@auth/core/adapters" {
   interface AdapterUser {
     role: UserRole;
+    username?: string | null;
+    avatarEmoji?: string | null;
   }
 }

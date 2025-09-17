@@ -66,8 +66,10 @@ export const adminRouter = createTRPCRouter({
         select: {
           id: true,
           name: true,
+          username: true,
           email: true,
           role: true,
+          avatarEmoji: true,
           createdAt: true,
           updatedAt: true,
           statistics: true,
@@ -80,8 +82,10 @@ export const adminRouter = createTRPCRouter({
     const items = usuarios.map((user) => ({
       id: user.id,
       name: user.name,
+      username: user.username,
       email: user.email,
       role: user.role,
+      avatarEmoji: user.avatarEmoji,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       statistics: user.statistics ? formatStatistics(user.statistics) : null,

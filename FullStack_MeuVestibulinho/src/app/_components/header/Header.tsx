@@ -7,7 +7,7 @@ import { LogIn, LogOut } from "lucide-react";
 
 const BASE_LINKS: NavLink[] = [
   { name: "Simulados", href: "/simulados", icon: "BookOpen" },
-  { name: "Meu Espaço", href: "", icon: "Paperclip" },
+  { name: "Meu Espaço", href: "/dashboard", icon: "Paperclip" },
   { name: "Guia de Estudos", href: "/guia", icon: "GraduationCap" },
   { name: "Mini Cursos", href: "/mini-cursos", icon: "Play" },
 ];
@@ -29,7 +29,15 @@ function initials(label?: string): string {
   return pick(parts[0] ?? clean);
 }
 
-function Avatar({ label }: { label: string }) {
+function Avatar({ label, emoji }: { label: string; emoji?: string | null }) {
+  if (emoji) {
+    return (
+      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-red-50 text-lg">
+        <span className="leading-none">{emoji}</span>
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-red-200">
       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-red-500 to-orange-500 text-xs font-semibold text-white">
@@ -52,6 +60,7 @@ export default async function Header() {
 
   const user = session?.user;
   const role = (user as { role?: string } | undefined)?.role;
+  const avatarEmoji = (user as { avatarEmoji?: string | null } | undefined)?.avatarEmoji;
   const userLabel = user?.name ?? user?.email ?? "Usuário";
 
   const links: NavLink[] = !user
@@ -59,7 +68,7 @@ export default async function Header() {
     : [
         ...BASE_LINKS,
         ...(role === "ADMIN"
-          ? [{ name: "Admin", href: "/admin/questoes", icon: "BookOpen" as const }]
+          ? [{ name: "Admin", href: "/admin", icon: "BookOpen" as const }]
           : []),
       ];
 
@@ -67,7 +76,7 @@ export default async function Header() {
     <>
       {!user ? (
         <Link
-          href="/signin?callbackUrl=/admin/questoes"
+          href="/signin?callbackUrl=/admin"
           prefetch={false}
           aria-label="Entrar"
           className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2 font-medium text-gray-700 outline-none transition-all duration-300 hover:text-red-600 focus:ring-2 focus:ring-red-300"
@@ -81,7 +90,7 @@ export default async function Header() {
         <div className="flex items-center gap-3">
           <div className="group hidden items-center gap-2 rounded-full border border-gray-200/70 bg-white/80 px-2 py-1 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md sm:flex">
             <span className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-red-100/0 via-orange-100/0 to-red-100/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-            <Avatar label={userLabel} />
+            <Avatar label={userLabel} emoji={avatarEmoji} />
             <span className="relative z-10 max-w-[16ch] truncate text-sm text-gray-800">
               {userLabel}
             </span>
@@ -114,7 +123,7 @@ export default async function Header() {
       links={links}
       isAuthenticated={Boolean(user)}
       userLabel={userLabel}
-      signInHref="/api/auth/signin?callbackUrl=/admin/questoes"
+      signInHref="/api/auth/signin?callbackUrl=/admin"
       signOutHref="/api/auth/signout"
       rightSlot={RightSlot}
     />

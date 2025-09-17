@@ -6,6 +6,7 @@ import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "~/server/db";
+import { normalizeAvatarEmoji } from "~/lib/profile";
 
 /** Constrói a lista de providers conforme ENVs disponíveis */
 export const providers: NonNullable<NextAuthConfig["providers"]> = [
@@ -74,20 +75,54 @@ export const authConfig: NextAuthConfig = {
         return session;
       }
 
-      (session.user as typeof session.user & { id: string }).id = user?.id ?? session.user.id;
+      const sessionUser = session.user as typeof session.user & {
+        id: string;
+        role?: UserRole;
+        username?: string | null;
+        avatarEmoji?: string | null;
+      };
 
-      if (user?.role) {
-        (session.user as typeof session.user & { role: UserRole }).role = user.role;
-        return session;
+      sessionUser.id = user?.id ?? sessionUser.id;
+
+      if (user) {
+        if (user.role) {
+          sessionUser.role = user.role;
+        }
+        if ("username" in user) {
+          sessionUser.username = user.username ?? null;
+        }
+        if ("avatarEmoji" in user) {
+          sessionUser.avatarEmoji = normalizeAvatarEmoji(user.avatarEmoji);
+        }
       }
 
-      if (!session.user.role) {
+      if (
+        !sessionUser.role ||
+        typeof sessionUser.username === "undefined" ||
+        typeof sessionUser.avatarEmoji === "undefined"
+      ) {
         const dbUser = await db.user.findUnique({
-          where: { id: session.user.id },
-          select: { role: true },
+          where: { id: sessionUser.id },
+          select: { role: true, username: true, avatarEmoji: true },
         });
 
-        (session.user as typeof session.user & { role: UserRole }).role = dbUser?.role ?? "USER";
+        sessionUser.role = dbUser?.role ?? sessionUser.role ?? "USER";
+        sessionUser.username =
+          typeof dbUser?.username === "undefined"
+            ? sessionUser.username ?? null
+            : dbUser.username ?? null;
+        sessionUser.avatarEmoji = normalizeAvatarEmoji(
+          dbUser?.avatarEmoji ?? sessionUser.avatarEmoji,
+        );
+      } else {
+        sessionUser.avatarEmoji = normalizeAvatarEmoji(sessionUser.avatarEmoji);
+      }
+
+      if (!sessionUser.role) {
+        sessionUser.role = "USER";
+      }
+      if (typeof sessionUser.username === "undefined") {
+        sessionUser.username = null;
       }
 
       return session;

@@ -3,6 +3,8 @@ import type { Session } from "next-auth";
 
 import { auth, swallowSessionTokenError } from "~/server/auth";
 import { api } from "~/trpc/server";
+import ProfileSettingsCard from "./ProfileSettingsCard";
+import { AVATAR_EMOJIS, normalizeAvatarEmoji } from "~/lib/profile";
 
 function formatDuration(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
@@ -41,10 +43,19 @@ export default async function DashboardPage() {
     redirect("/api/auth/signin?callbackUrl=/dashboard");
   }
 
-  const stats = await api.stats.getOwn();
+  const [stats, profile] = await Promise.all([
+    api.stats.getOwn(),
+    api.profile.getCurrent(),
+  ]);
   const percentualGlobal = stats && stats.totalQuestoes > 0
     ? Math.round(((stats.totalAcertos / stats.totalQuestoes) * 100) * 10) / 10
     : 0;
+  const avatarEmoji = normalizeAvatarEmoji(profile?.avatarEmoji);
+  const displayName = profile?.name ?? session.user.name ?? "Bem-vindo(a)!";
+  const usernameLabel = profile?.username
+    ? `@${profile.username}`
+    : "Defina um nome de usuário para identificar seus resultados.";
+  const emailLabel = profile?.email ?? session.user.email ?? "—";
 
   return (
     <main className="container mx-auto max-w-6xl px-4 pb-16 pt-24">
@@ -54,6 +65,39 @@ export default async function DashboardPage() {
           Acompanhe seu progresso, identifique os conteúdos dominados e saiba exatamente onde concentrar os próximos estudos.
         </p>
       </header>
+
+      <section className="mb-12 grid gap-6 lg:grid-cols-[minmax(0,280px)_1fr]">
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-4xl">
+              {avatarEmoji}
+            </div>
+            <div className="space-y-1">
+              <p className="text-base font-semibold text-gray-900">{displayName}</p>
+              <p className="text-sm text-gray-500">{usernameLabel}</p>
+            </div>
+          </div>
+          <dl className="mt-6 space-y-3 text-sm text-gray-600">
+            <div>
+              <dt className="font-semibold text-gray-800">E-mail</dt>
+              <dd>{emailLabel}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-gray-800">Simulados concluídos</dt>
+              <dd>{stats?.simuladosConcluidos ?? 0}</dd>
+            </div>
+          </dl>
+        </div>
+        <ProfileSettingsCard
+          profile={{
+            name: profile?.name ?? null,
+            email: emailLabel,
+            username: profile?.username ?? null,
+            avatarEmoji,
+          }}
+          emojiOptions={AVATAR_EMOJIS}
+        />
+      </section>
 
       {stats ? (
         <div className="space-y-10">
