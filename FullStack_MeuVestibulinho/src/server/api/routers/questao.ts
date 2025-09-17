@@ -95,13 +95,14 @@ const listInputSchema = z.object({
   orderBy: z.enum(["newest", "oldest"]).default("newest"),
 });
 
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.session.user.role !== "ADMIN") {
-    throw new TRPCError({ code: "FORBIDDEN" });
-  }
+  const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+    const role = (ctx.session.user as { role?: string | null }).role;
+    if (role !== "ADMIN") {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
 
-  return next();
-});
+    return next();
+  });
 
 export const questaoRouter = createTRPCRouter({
   recent: protectedProcedure

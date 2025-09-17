@@ -1,5 +1,6 @@
 // src/app/admin/questoes/page.tsx
-import { auth } from "~/server/auth";
+import type { Session } from "next-auth";
+import { auth, swallowSessionTokenError } from "~/server/auth";
 import { redirect } from "next/navigation";
 import NewQuestionForm from "./NewQuestionForm";
 import QuestaoList from "./QuestaoList";
@@ -8,7 +9,16 @@ import { Alternativa, Disciplina, GrauDificuldade } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 export default async function AdminQuestoesPage() {
-  const session = await auth();
+  let session: Session | null = null;
+
+  try {
+    session = await auth();
+  } catch (error) {
+    if (!swallowSessionTokenError(error)) {
+      throw error;
+    }
+  }
+
   if (!session) {
     redirect("/api/auth/signin?callbackUrl=/admin/questoes");
   }
