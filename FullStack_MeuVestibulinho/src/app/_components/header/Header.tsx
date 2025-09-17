@@ -67,7 +67,7 @@ export default async function Header() {
     <>
       {!user ? (
         <Link
-          href="/api/auth/signin?callbackUrl=/admin/questoes"
+          href="/signin?callbackUrl=/admin/questoes"
           prefetch={false}
           aria-label="Entrar"
           className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2 font-medium text-gray-700 outline-none transition-all duration-300 hover:text-red-600 focus:ring-2 focus:ring-red-300"

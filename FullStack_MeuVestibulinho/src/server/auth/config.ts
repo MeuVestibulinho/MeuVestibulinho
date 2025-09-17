@@ -4,24 +4,11 @@ import type { UserRole } from "@prisma/client";
 import KeycloakProvider from "next-auth/providers/keycloak";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "~/server/db";
-import { z } from "zod";
-
-/** Type guard para identificar providers já resolvidos (não-fábrica) */
-type ProviderLike = { id: string; name?: string };
-function isProviderLike(p: unknown): p is ProviderLike {
-  return (
-    typeof p === "object" &&
-    p !== null &&
-    "id" in p &&
-    typeof (p as { id: unknown }).id === "string"
-  );
-}
 
 /** Constrói a lista de providers conforme ENVs disponíveis */
-const providers = [
+export const providers = [
   // Keycloak (habilita se TODAS as ENVs existirem)
   ...(process.env.KEYCLOAK_ISSUER &&
   process.env.KEYCLOAK_CLIENT_ID &&
@@ -54,43 +41,7 @@ const providers = [
         }),
       ]
     : []),
-
-  // Credentials (helper em dev) — usa UPSERT p/ evitar race conditions
-  ...(process.env.NODE_ENV === "development"
-    ? [
-        CredentialsProvider({
-          credentials: {
-            email: { label: "Email", type: "text" },
-          },
-          async authorize(
-            credentials: Partial<Record<"email", unknown>>,
-          ): Promise<User | null> {
-            const parsed = z
-              .object({ email: z.string().email() })
-              .safeParse(credentials);
-
-            if (!parsed.success) return null;
-
-            const { email } = parsed.data;
-
-            // UPSERT garante idempotência e evita condição de corrida
-            const user = await db.user.upsert({
-              where: { email },
-              create: { email, name: "Dev User" },
-              update: {}, // nada a atualizar se já existir
-            });
-
-            return {
-              id: user.id,
-              email: user.email ?? undefined,
-              name: user.name ?? undefined,
-              role: user.role,
-            };
-          },
-        }),
-      ]
-    : []),
-];
+ ];
 
 /** Config principal do Auth.js v5 (não instanciamos NextAuth aqui) */
 export const authConfig: NextAuthConfig = {
@@ -99,6 +50,9 @@ export const authConfig: NextAuthConfig = {
   trustHost: true,                          // 👈 recomendado atrás de proxy
 
   providers,
+  pages: {
+    signIn: "/signin",   // 👈 aqui
+  },
 
   callbacks: {
     async session({ session, user }) {
@@ -128,9 +82,3 @@ export const authConfig: NextAuthConfig = {
 
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
 };
-
-/** Lista simples (id + name) de providers habilitados para a UI */
-const rawProviders: unknown[] = [...(providers ?? [])];
-export const enabledProviders: { id: string; name: string }[] = rawProviders
-  .filter(isProviderLike)
-  .map((p) => ({ id: p.id, name: p.name ?? p.id }));

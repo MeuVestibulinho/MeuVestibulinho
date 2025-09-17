@@ -2,12 +2,22 @@
 import NextAuth from "next-auth";
 import { cache } from "react";
 import { SessionTokenError } from "@auth/core/errors";
-import { authConfig } from "./config"; // nossa fonte única de verdade
+import { authConfig, providers } from "./config"; // nossa fonte única de verdade
 
 export const { handlers, auth: uncachedAuth, signIn, signOut } = NextAuth(authConfig);
 
 // Evita recriações desnecessárias em RSC
 export const auth = cache(uncachedAuth);
+
+export const providerMap = providers
+  .map((provider) => {
+    if (typeof provider === "function") {
+      const providerData = provider()
+      return { id: providerData.id, name: providerData.name }
+    } else {
+      return { id: provider.id, name: provider.name }
+    }
+  })
 
 export function isSessionTokenError(error: unknown): error is SessionTokenError {
   if (error instanceof SessionTokenError) {
