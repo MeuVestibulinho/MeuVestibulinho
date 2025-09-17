@@ -1,13 +1,7 @@
 // Importa o ReactNode do React, que é um tipo que representa qualquer coisa que pode ser renderizada pelo React (elementos, strings, números, fragmentos, etc.)
-import Link from "next/link";
-
 import Image from "next/image";
-// Importa a função auth que lida com autenticação de usuários
-import { auth } from "~/server/auth";
-// Importa o objeto api do TRPC para fazer chamadas às rotas definidas no backend
-// TRPC é uma biblioteca que facilita a comunicação entre frontend e backend com TypeScript
-// Com rotas, eu quero dizer as funções que definimos no backend para criar, ler, atualizar e deletar dados (GET, POST, PUT, DELETE)
-import { api, HydrateClient } from "~/trpc/server";
+// Importa o HydrateClient do TRPC para hidratar consultas pré-carregadas no servidor
+import { HydrateClient } from "~/trpc/server";
 
 import herophoto from "../../public/foto-hero.jpg";
 
@@ -17,8 +11,6 @@ import { Button } from "~/app/_components/button";
 // Ele busca uma saudação do backend usando o TRPC e a sessão do usuário autenticado
 // Se o usuário estiver autenticado, ele pré-busca o post mais recente para melhorar a performance
 export default async function Home() {
-  const session = await auth(); // Busca a sessão do usuário autenticado usando a função auth
-
   // Retorna o JSX que define a interface da página inicial
   // JSX é uma sintaxe que mistura HTML e JavaScript, usada pelo React para definir a UI (User Interface = interface do usuário)
   // Aqui exibimos links pra documentação, a saudação do backend e o estado de autenticação do usuário

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title">
+  <title>Simulado 2020</title>
+  <defs>
+    <linearGradient id="grad2020" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff8a80" />
+      <stop offset="50%" stop-color="#ff7043" />
+      <stop offset="100%" stop-color="#f4511e" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="32" fill="url(#grad2020)" />
+  <g fill="#ffffff" font-family="'Poppins', 'Segoe UI', sans-serif" text-anchor="middle">
+    <text x="320" y="150" font-size="72" font-weight="700">2020</text>
+    <text x="320" y="210" font-size="28" font-weight="500">Simulado Oficial</text>
+  </g>
+  <circle cx="520" cy="80" r="36" fill="#ffffff20" />
+  <circle cx="120" cy="280" r="48" fill="#ffffff10" />
+</svg>

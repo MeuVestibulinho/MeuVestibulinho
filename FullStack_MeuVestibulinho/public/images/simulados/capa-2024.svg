@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title">
+  <title>Simulado 2024</title>
+  <defs>
+    <linearGradient id="grad2024" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#80cbc4" />
+      <stop offset="50%" stop-color="#26a69a" />
+      <stop offset="100%" stop-color="#00897b" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="32" fill="url(#grad2024)" />
+  <g fill="#004d40" font-family="'Poppins', 'Segoe UI', sans-serif" text-anchor="middle">
+    <text x="320" y="150" font-size="72" font-weight="700">2024</text>
+    <text x="320" y="210" font-size="28" font-weight="600">Simulado Oficial</text>
+  </g>
+  <circle cx="500" cy="90" r="38" fill="#ffffff24" />
+  <circle cx="160" cy="300" r="50" fill="#ffffff16" />
+</svg>

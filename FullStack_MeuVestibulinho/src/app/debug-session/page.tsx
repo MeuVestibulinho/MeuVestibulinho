@@ -1,7 +1,17 @@
 // app/debug-session/page.tsx
-import { auth } from "~/server/auth";
+import type { Session } from "next-auth";
+import { auth, swallowSessionTokenError } from "~/server/auth";
 
 export default async function Page() {
-  const session = await auth();
+  let session: Session | null = null;
+
+  try {
+    session = await auth();
+  } catch (error) {
+    if (!swallowSessionTokenError(error)) {
+      throw error;
+    }
+  }
+
   return <pre>{JSON.stringify(session, null, 2)}</pre>;
 }

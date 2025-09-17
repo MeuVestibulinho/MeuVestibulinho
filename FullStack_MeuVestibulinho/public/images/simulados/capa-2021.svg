@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title">
+  <title>Simulado 2021</title>
+  <defs>
+    <linearGradient id="grad2021" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#80d8ff" />
+      <stop offset="50%" stop-color="#40c4ff" />
+      <stop offset="100%" stop-color="#00b0ff" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="32" fill="url(#grad2021)" />
+  <g fill="#ffffff" font-family="'Poppins', 'Segoe UI', sans-serif" text-anchor="middle">
+    <text x="320" y="150" font-size="72" font-weight="700">2021</text>
+    <text x="320" y="210" font-size="28" font-weight="500">Simulado Oficial</text>
+  </g>
+  <circle cx="520" cy="90" r="40" fill="#ffffff22" />
+  <circle cx="140" cy="280" r="52" fill="#ffffff15" />
+</svg>

@@ -1,6 +1,7 @@
 // src/components/header/Header.tsx
 import Link from "next/link";
-import { auth, signOut } from "~/server/auth";
+import type { Session } from "next-auth";
+import { auth, signOut, swallowSessionTokenError } from "~/server/auth";
 import NavbarClient, { type NavLink } from "../Navbar";
 import { LogIn, LogOut } from "lucide-react";
 
@@ -39,17 +40,28 @@ function Avatar({ label }: { label: string }) {
 }
 
 export default async function Header() {
-  const session = await auth();
+  let session: Session | null = null;
+
+  try {
+    session = await auth();
+  } catch (error) {
+    if (!swallowSessionTokenError(error)) {
+      throw error;
+    }
+  }
+
   const user = session?.user;
   const role = (user as { role?: string } | undefined)?.role;
   const userLabel = user?.name ?? user?.email ?? "Usuário";
 
-  const links: NavLink[] = [
-    ...BASE_LINKS,
-    ...(role === "ADMIN"
-      ? [{ name: "Admin", href: "/admin/questoes", icon: "BookOpen" as const }]
-      : []),
-  ];
+  const links: NavLink[] = !user
+    ? []
+    : [
+        ...BASE_LINKS,
+        ...(role === "ADMIN"
+          ? [{ name: "Admin", href: "/admin/questoes", icon: "BookOpen" as const }]
+          : []),
+      ];
 
   const RightSlot = (
     <>
