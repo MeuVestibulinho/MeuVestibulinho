@@ -24,6 +24,16 @@ function isPublicPath(pathname: string): boolean {
 const middleware = uncachedAuth((req) => {
   const { pathname } = req.nextUrl;
 
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/assets") ||
+    pathname === "/favicon.ico" ||
+    /\.(?:png|jpg|jpeg|svg|gif)$/i.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
@@ -51,5 +61,5 @@ const middleware = uncachedAuth((req) => {
 export default middleware;
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api|assets|.*\\.(png|jpg|jpeg|svg|gif)).*)"],
+  matcher: ["/:path*"],
 };
