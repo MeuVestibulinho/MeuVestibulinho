@@ -16,8 +16,9 @@ const paramsSchema = z.object({
 export default async function SimuladoAnoPage({
   params,
 }: {
-  params: { ano: string };
+  params: Promise<{ ano: string }>;
 }) {
+  const resolvedParams = await params;
   let session: Session | null = null;
 
   try {
@@ -29,10 +30,10 @@ export default async function SimuladoAnoPage({
   }
 
   if (!session) {
-    redirect(`/api/auth/signin?callbackUrl=/simulados/${params.ano ?? ""}`);
+    redirect(`/api/auth/signin?callbackUrl=/simulados/${resolvedParams.ano ?? ""}`);
   }
 
-  const parsed = paramsSchema.safeParse(params);
+  const parsed = paramsSchema.safeParse(resolvedParams);
   if (!parsed.success) {
     notFound();
   }

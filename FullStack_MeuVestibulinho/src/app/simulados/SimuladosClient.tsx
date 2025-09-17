@@ -99,7 +99,8 @@ export default function SimuladosClient({ simulados }: Props) {
 
   const handleConfirm = React.useCallback(() => {
     if (!modalState) return;
-    router.push(`/simulados/${modalState.simulado.ano}`);
+    const anoSlug = encodeURIComponent(String(modalState.simulado.ano));
+    router.push(`/simulados/${anoSlug}`);
     setModalState(null);
   }, [modalState, router]);
 
