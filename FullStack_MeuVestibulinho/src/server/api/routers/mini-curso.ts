@@ -23,11 +23,11 @@ import {
 const courseWithRelations = {
   include: {
     sections: {
-      orderBy: { order: "asc" },
-      include: { lessons: { orderBy: { order: "asc" } } },
+      orderBy: { order: "asc" as const },
+      include: { lessons: { orderBy: { order: "asc" as const } } },
     },
   },
-} satisfies Prisma.MiniCourseInclude;
+} satisfies Prisma.MiniCourseDefaultArgs;
 
 type CourseWithContent = Prisma.MiniCourseGetPayload<typeof courseWithRelations>;
 
@@ -144,7 +144,7 @@ async function resequenceSections(
 ) {
   const sections = await trx.miniCourseSection.findMany({
     where: { courseId },
-    orderBy: { order: "asc" },
+    orderBy: { order: "asc" as const },
     select: { id: true },
   });
 
@@ -162,7 +162,7 @@ async function resequenceLessons(
 ) {
   const lessons = await trx.miniCourseLesson.findMany({
     where: { sectionId },
-    orderBy: { order: "asc" },
+    orderBy: { order: "asc" as const },
     select: { id: true },
   });
 
@@ -186,7 +186,7 @@ async function touchCourse(db: DbClient, courseId: string) {
 export const miniCursoRouter = createTRPCRouter({
   list: publicProcedure.query(async ({ ctx }) => {
     const courses = await ctx.db.miniCourse.findMany({
-      orderBy: { updatedAt: "desc" },
+      orderBy: { updatedAt: "desc" as const },
       include: {
         sections: {
           select: {
@@ -238,7 +238,7 @@ export const miniCursoRouter = createTRPCRouter({
 
   adminList: adminProcedure.query(async ({ ctx }) => {
     const courses = await ctx.db.miniCourse.findMany({
-      orderBy: { updatedAt: "desc" },
+      orderBy: { updatedAt: "desc" as const },
       ...courseWithRelations,
     });
 
@@ -322,7 +322,7 @@ export const miniCursoRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const lastSection = await ctx.db.miniCourseSection.findFirst({
         where: { courseId: input.courseId },
-        orderBy: { order: "desc" },
+        orderBy: { order: "desc" as const },
         select: { order: true },
       });
 
@@ -402,7 +402,7 @@ export const miniCursoRouter = createTRPCRouter({
       const content = normaliseContent(input.content);
       const lastLesson = await ctx.db.miniCourseLesson.findFirst({
         where: { sectionId: section.id },
-        orderBy: { order: "desc" },
+        orderBy: { order: "desc" as const },
         select: { order: true },
       });
 
