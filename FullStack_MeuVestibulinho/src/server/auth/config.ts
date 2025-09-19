@@ -12,13 +12,12 @@ import { normalizeAvatarEmoji } from "~/lib/profile";
 export const providers: NonNullable<NextAuthConfig["providers"]> = [
   // Keycloak (habilita se TODAS as ENVs existirem)
   ...(process.env.KEYCLOAK_ISSUER &&
-  process.env.KEYCLOAK_CLIENT_ID &&
-  process.env.KEYCLOAK_CLIENT_SECRET
+  process.env.KEYCLOAK_CLIENT_ID 
     ? [
         KeycloakProvider({
           issuer: process.env.KEYCLOAK_ISSUER,
           clientId: process.env.KEYCLOAK_CLIENT_ID,
-          clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+          clientSecret: process.env.KEYCLOAK_CLIENT_SECRET ?? "",
         }),
       ]
     : []),
