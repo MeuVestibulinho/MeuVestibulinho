@@ -94,8 +94,8 @@ export default async function MiniCursoDetalhePage({ params }: { params: PagePar
                     </span>
                   )}
                 </div>
-                <h1 className="text-4xl font-semibold text-gray-900 sm:text-5xl">{course.title}</h1>
-                <p className="max-w-3xl text-lg text-gray-600">{course.subtitle}</p>
+                <h1 className="break-words text-4xl font-semibold text-gray-900 sm:text-5xl">{course.title}</h1>
+                <p className="max-w-3xl break-words text-lg text-gray-600">{course.subtitle}</p>
                 <div className="flex flex-wrap gap-3 text-xs font-semibold text-gray-500">
                   <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1">
                     <Layers size={14} /> {sectionsCount} etapa{sectionsCount === 1 ? "" : "s"}
@@ -131,9 +131,9 @@ export default async function MiniCursoDetalhePage({ params }: { params: PagePar
                 <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 space-y-1">
                     <p className="text-xs font-semibold uppercase text-orange-500">Etapa {index + 1}</p>
-                    <h2 className="text-2xl font-semibold text-gray-900">{section.title}</h2>
+                    <h2 className="break-words text-2xl font-semibold text-gray-900">{section.title}</h2>
                     {section.summary && (
-                      <p className="max-w-3xl text-sm text-gray-600">{section.summary}</p>
+                      <p className="max-w-3xl break-words text-sm text-gray-600">{section.summary}</p>
                     )}
                   </div>
                   <span className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600">
@@ -170,7 +170,7 @@ function LessonBlock({ lesson, position }: LessonBlockProps) {
           <LessonIcon type={type} />
           <div>
             <p className="text-xs font-semibold uppercase text-gray-400">Passo {position}</p>
-            <h3 className="text-lg font-semibold text-gray-900">{lesson.title}</h3>
+            <h3 className="break-words text-lg font-semibold text-gray-900">{lesson.title}</h3>
           </div>
         </div>
         {lesson.durationMinutes && (
@@ -215,7 +215,7 @@ function LessonContent({ content }: LessonContentProps) {
     case "example":
       return (
         <div className="space-y-4">
-          <p className="text-sm leading-relaxed text-gray-700">{content.description}</p>
+          <p className="break-words text-sm leading-relaxed text-gray-700">{content.description}</p>
           <ol className="space-y-3 rounded-2xl bg-sky-50 px-4 py-4 text-sm text-sky-900">
             {content.steps.map((step, index) => (
               <li key={index} className="flex gap-3">
@@ -240,7 +240,7 @@ function LessonContent({ content }: LessonContentProps) {
             />
           </div>
           {content.description && (
-            <p className="text-sm text-gray-600">{content.description}</p>
+            <p className="break-words text-sm text-gray-600">{content.description}</p>
           )}
         </div>
       );

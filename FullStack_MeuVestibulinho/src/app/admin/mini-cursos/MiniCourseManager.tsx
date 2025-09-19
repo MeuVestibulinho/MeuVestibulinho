@@ -266,7 +266,7 @@ function LessonForm({ mode, defaultValues, onSubmit, onCancel, disabled }: Lesso
             <option value="exercise">Prática guiada</option>
           </select>
         </label>
-        <p className="rounded-xl border border-dashed border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700">
+        <p className="break-words rounded-xl border border-dashed border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700">
           {typeDescription(type)}
         </p>
       </div>
@@ -411,7 +411,7 @@ function LessonForm({ mode, defaultValues, onSubmit, onCancel, disabled }: Lesso
       )}
 
       {formError && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="break-words text-sm text-red-600" role="alert">
           {formError}
         </p>
       )}
@@ -965,10 +965,10 @@ export default function MiniCourseManager() {
                           {course.emoji}
                         </span>
                         <div className="min-w-0 flex-1 space-y-1">
-                          <p className="truncate text-sm font-semibold text-gray-900">
+                          <p className="line-clamp-2 break-words text-sm font-semibold text-gray-900">
                             {course.title}
                           </p>
-                          <p className="truncate text-xs text-gray-500">
+                          <p className="line-clamp-2 break-words text-xs text-gray-500">
                             {course.subtitle}
                           </p>
                           <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-gray-500">
@@ -1126,7 +1126,7 @@ export default function MiniCourseManager() {
             </button>
           </header>
 
-          <p className="mt-4 text-sm text-gray-600">
+          <p className="mt-4 break-words text-sm text-gray-600">
             {selectedCourse.subtitle}
           </p>
 
@@ -1293,10 +1293,10 @@ export default function MiniCourseManager() {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">
-                      <h4 className="text-base font-semibold text-gray-900">
+                      <h4 className="break-words text-base font-semibold text-gray-900">
                         {section.title}
                       </h4>
-                      <p className="text-sm text-gray-600">
+                      <p className="break-words text-sm text-gray-600">
                         {section.summary ?? "Ainda sem resumo para esta etapa."}
                       </p>
                     </div>
@@ -1397,11 +1397,11 @@ export default function MiniCourseManager() {
                                 </div>
                               </div>
                               <div className="min-w-0 space-y-1">
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="break-words text-sm font-semibold text-gray-900">
                                   {lesson.title}
                                 </p>
                                 {preview && (
-                                  <p className="line-clamp-3 text-sm text-gray-600">{preview}</p>
+                                  <p className="line-clamp-3 break-words text-sm text-gray-600">{preview}</p>
                                 )}
                               </div>
                             </div>
@@ -1451,7 +1451,7 @@ export default function MiniCourseManager() {
         <div aria-live="polite" className="min-h-[1rem]">
           {feedback && (
             <div
-              className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm shadow-sm ${
+              className={`flex min-w-0 items-center gap-2 rounded-2xl border px-4 py-3 text-sm shadow-sm ${
                 feedback.type === "success"
                   ? "border-green-200 bg-green-50 text-green-700"
                   : "border-red-200 bg-red-50 text-red-700"
@@ -1462,7 +1462,7 @@ export default function MiniCourseManager() {
               ) : (
                 <span aria-hidden className="text-lg">⚠️</span>
               )}
-              <span className="font-medium">{feedback.message}</span>
+              <span className="break-words font-medium">{feedback.message}</span>
             </div>
           )}
         </div>
