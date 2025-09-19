@@ -15,6 +15,7 @@ import type {
   GrauOption,
   LetraOption,
 } from "./questoes/QuestionForm";
+import MiniCourseManager from "./mini-cursos/MiniCourseManager";
 
 const COVER_FALLBACK = "/images/simulados/capa-default.svg";
 
@@ -72,6 +73,13 @@ export default function AdminDashboardClient({
     React.useState<UploadFeedback | null>(null);
 
   const isOverview = activeView === "overview";
+  const isQuestionBank = activeView === "questoes";
+
+  const viewDescription = isOverview
+    ? "Gerencie usuários, acompanhe estatísticas e personalize os simulados da plataforma."
+    : isQuestionBank
+      ? "Cadastre novas questões, mantenha o banco atualizado e organize os simulados em um só lugar."
+      : "Estruture mini-cursos lúdicos com textos, vídeos e exercícios guiados para apoiar os estudantes.";
 
   React.useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -260,11 +268,7 @@ export default function AdminDashboardClient({
           {ADMIN_VIEW_LABEL[activeView]}
         </span>
         <h1 className="text-3xl font-semibold text-gray-900">Administração</h1>
-        <p className="max-w-3xl text-sm text-gray-600">
-          {isOverview
-            ? "Gerencie usuários, acompanhe estatísticas e personalize os simulados da plataforma."
-            : "Cadastre novas questões, mantenha o banco atualizado e organize os simulados em um só lugar."}
-        </p>
+        <p className="max-w-3xl text-sm text-gray-600">{viewDescription}</p>
       </header>
 
       {isOverview ? (
@@ -753,7 +757,7 @@ export default function AdminDashboardClient({
             </div>
           )}
         </>
-      ) : (
+      ) : isQuestionBank ? (
         <section className="space-y-8">
           <div className="rounded-3xl border border-gray-200 bg-white/80 p-6 shadow-sm backdrop-blur">
             <div className="mb-4">
@@ -778,6 +782,8 @@ export default function AdminDashboardClient({
             letraOptions={letraOptions}
           />
         </section>
+      ) : (
+        <MiniCourseManager />
       )}
     </div>
   );

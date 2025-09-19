@@ -89,51 +89,57 @@ function QuestionCard({ questao, onEdit, onDelete }: {
     .join(", ");
 
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white/90 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <header className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-600">
+    <article className="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 bg-white/90 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <header className="flex min-w-0 flex-wrap items-center gap-2 text-xs font-medium text-gray-600">
         {typeof questao.ano === "number" && (
           <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-700">Ano {questao.ano}</span>
         )}
-        <span className="rounded-full bg-gray-100 px-3 py-1">{labelize(questao.disciplina)}</span>
-        <span className="rounded-full bg-gray-100 px-3 py-1">{labelize(questao.grauDificuldade)}</span>
-        <span className="ml-auto text-right text-[11px] text-gray-500">
-          Atualizada em {new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(questao.updatedAt)}
+        <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-700">{labelize(questao.disciplina)}</span>
+        <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-700">{labelize(questao.grauDificuldade)}</span>
+        <span className="ml-auto min-w-0 text-right text-[11px] text-gray-500">
+          <span className="block break-words">
+            Atualizada em {new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(questao.updatedAt)}
+          </span>
         </span>
       </header>
 
       <div className="space-y-3 text-sm text-gray-800">
-        <p className="whitespace-pre-wrap font-medium leading-relaxed text-gray-900">{questao.enunciado}</p>
-        <div className="grid gap-2 text-xs">
+        <p className="min-w-0 break-words whitespace-pre-wrap font-medium leading-relaxed text-gray-900">
+          {questao.enunciado}
+        </p>
+        <div className="grid min-w-0 gap-2 text-xs">
           <div className="rounded-lg bg-red-50/60 px-3 py-2">
             <span className="font-semibold text-red-700">Habilidades:&nbsp;</span>
-            <span className="text-red-900">{questao.habilidades}</span>
+            <span className="break-words text-red-900">{questao.habilidades}</span>
           </div>
           <div className="rounded-lg bg-orange-50/60 px-3 py-2">
             <span className="font-semibold text-orange-700">Conteúdo:&nbsp;</span>
-            <span className="text-orange-900">{questao.conteudo}</span>
+            <span className="break-words text-orange-900">{questao.conteudo}</span>
           </div>
           <div className="rounded-lg bg-amber-50/60 px-3 py-2">
             <span className="font-semibold text-amber-700">Subconteúdo:&nbsp;</span>
-            <span className="text-amber-900">{questao.subconteudo}</span>
+            <span className="break-words text-amber-900">{questao.subconteudo}</span>
           </div>
         </div>
       </div>
 
-      <ul className="grid gap-2 text-sm text-gray-700">
+      <ul className="grid min-w-0 gap-2 text-sm text-gray-700">
         {questao.alternativas.map((alt) => (
           <li
             key={alt.id}
             className={clsx(
-              "flex items-start gap-3 rounded-xl border px-3 py-2 shadow-sm transition",
+              "flex min-w-0 items-start gap-3 rounded-xl border px-3 py-2 shadow-sm transition",
               alt.correta
                 ? "border-green-300 bg-green-50/80"
                 : "border-gray-200 bg-white",
             )}
           >
-            <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-gray-100 px-1 text-xs font-semibold text-gray-700">
+            <span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-700">
               {alt.letra}
             </span>
-            <span className="text-sm leading-relaxed text-gray-800">{alt.texto}</span>
+            <span className="min-w-0 break-words text-sm leading-relaxed text-gray-800">
+              {alt.texto}
+            </span>
           </li>
         ))}
       </ul>

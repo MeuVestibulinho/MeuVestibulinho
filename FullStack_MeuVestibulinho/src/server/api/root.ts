@@ -4,6 +4,7 @@ import { postRouter } from "~/server/api/routers/post";
 import { questaoRouter } from "~/server/api/routers/questao";
 import { statsRouter } from "~/server/api/routers/stats";
 import { profileRouter } from "~/server/api/routers/profile";
+import { miniCursoRouter } from "~/server/api/routers/mini-curso";
 // importa funções para criar o roteador TRPC e o caller do servidor, que permite fazer chamadas às rotas do TRPC no backend
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   admin: adminRouter,
   stats: statsRouter,
   profile: profileRouter,
+  miniCurso: miniCursoRouter,
 });
 
 // export type definition of API

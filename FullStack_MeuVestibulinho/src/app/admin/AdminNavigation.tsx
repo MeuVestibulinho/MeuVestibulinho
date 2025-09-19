@@ -5,6 +5,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { ADMIN_VIEW_LABEL, ADMIN_VIEWS, type AdminView } from "./views";
 
+const isAdminView = (value: string | null): value is AdminView =>
+  ADMIN_VIEWS.includes((value ?? "") as AdminView);
+
 const NAV_ITEMS = ADMIN_VIEWS.map((view) => ({
   view,
   label: ADMIN_VIEW_LABEL[view],
@@ -17,8 +20,8 @@ export default function AdminNavigation() {
 
   const paramView = searchParams?.get("view");
   const currentView: AdminView =
-    pathname && pathname.startsWith("/admin") && paramView === "questoes"
-      ? "questoes"
+    pathname && pathname.startsWith("/admin") && isAdminView(paramView)
+      ? (paramView as AdminView)
       : "overview";
 
   const handleNavigate = (view: AdminView) => {
@@ -35,7 +38,7 @@ export default function AdminNavigation() {
   };
 
   return (
-      <nav className="fixed top-16 left-0 right-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur">
+    <nav className="fixed left-0 right-0 top-16 z-40 border-b border-gray-200 bg-white/80 backdrop-blur">
       <div className="container mx-auto flex max-w-7xl gap-2 px-4 py-4">
         {NAV_ITEMS.map((item) => {
           const isActive = item.view === currentView;
@@ -54,9 +57,9 @@ export default function AdminNavigation() {
             >
               {item.label}
             </button>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
     </nav>
   );
 }

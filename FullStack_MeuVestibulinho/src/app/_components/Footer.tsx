@@ -33,7 +33,7 @@ const footerLinks = {
     { name: "Simulados", href: "", icon: BookOpen },
     { name: "Meu Espaço", href: "", icon: User },
     { name: "Guia de Estudos", href: "/guia", icon: GraduationCap },
-    { name: "Mini Cursos", href: "", icon: Play },
+    { name: "Mini Cursos", href: "/mini-cursos", icon: Play },
   ],
   recursos: [
     { name: "Trilha de Estudos", href: "/trilha", icon: BookOpen },
