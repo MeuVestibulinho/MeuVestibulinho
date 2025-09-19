@@ -15,60 +15,59 @@ export default async function MiniCursosPage() {
   const estimatedMinutes = courses.reduce((sum, course) => sum + (course.estimatedMinutes ?? 0), 0);
 
   return (
-    <main className="bg-gradient-to-br from-rose-50 via-orange-50 to-yellow-50">
-      <div className="container mx-auto px-4 py-24">
-        <div className="mx-auto max-w-3xl space-y-6 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-orange-600 shadow-sm">
+    <main className="container mx-auto max-w-6xl px-4 pb-16 pt-24">
+      <header className="mb-12 space-y-6">
+        <div className="space-y-2">
+          <span className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-4 py-2 text-sm font-semibold text-orange-600">
             <Sparkles size={16} /> Mini-cursos guiados
           </span>
-          <h1 className="text-4xl font-semibold text-gray-900 sm:text-5xl">
+          <h1 className="text-3xl font-semibold text-gray-900">
             Aprenda no seu ritmo com trilhas curtinhas
           </h1>
-          <p className="text-lg leading-relaxed text-gray-600">
+          <p className="max-w-3xl text-sm text-gray-600">
             Explicações objetivas, exemplos ilustrados e desafios passo a passo pensados para quem está se preparando para o vestibulinho da ETEC.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 text-xs font-semibold text-gray-600">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm">
-              <Layers size={14} /> {courses.length} mini-curso{courses.length === 1 ? "" : "s"}
-            </span>
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm">
-              <BookOpenCheck size={14} /> {totalLessons} atividades guiadas
-            </span>
-            {estimatedMinutes > 0 && (
-              <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm">
-                <Clock size={14} /> {estimatedMinutes} minutos de conteúdo lúdico
-              </span>
-            )}
-          </div>
         </div>
 
-        <div className="mt-16">
-          <MiniCourseExplorer courses={courses} categories={categories} />
+        <div className="flex flex-wrap gap-3 text-xs font-semibold text-gray-600">
+          <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2">
+            <Layers size={14} /> {courses.length} mini-curso{courses.length === 1 ? "" : "s"}
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2">
+            <BookOpenCheck size={14} /> {totalLessons} atividades guiadas
+          </span>
+          {estimatedMinutes > 0 && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2">
+              <Clock size={14} /> {estimatedMinutes} minutos de conteúdo lúdico
+            </span>
+          )}
         </div>
+      </header>
 
-        <section className="mt-20 rounded-3xl bg-gradient-to-r from-red-500 to-orange-500 p-8 text-white shadow-xl">
-          <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
-            <h2 className="text-3xl font-semibold sm:text-4xl">Pronto para dar o próximo passo?</h2>
-            <p className="text-lg text-white/90">
-              Combine os mini-cursos com nossa trilha de estudos e simulados para fixar os conteúdos e chegar confiante no dia da prova.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                href="/trilha"
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50"
-              >
-                Ver trilha de estudos
-              </Link>
-              <Link
-                href="/simulados"
-                className="rounded-full border border-white px-6 py-3 text-sm font-semibold text-white transition hover:bg-white hover:text-red-600"
-              >
-                Fazer simulado
-              </Link>
-            </div>
+      <MiniCourseExplorer courses={courses} categories={categories} />
+
+      <section className="mt-16 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 p-8 text-gray-900">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
+          <h2 className="text-2xl font-semibold">Pronto para dar o próximo passo?</h2>
+          <p className="text-sm text-gray-600">
+            Combine os mini-cursos com nossa trilha de estudos e simulados para fixar os conteúdos e chegar confiante no dia da prova.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              href="/trilha"
+              className="rounded-full bg-red-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+            >
+              Ver trilha de estudos
+            </Link>
+            <Link
+              href="/simulados"
+              className="rounded-full border border-red-600 px-6 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white"
+            >
+              Fazer simulado
+            </Link>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
