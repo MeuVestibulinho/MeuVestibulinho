@@ -14,9 +14,14 @@ const providerIcons: Record<string, ReactElement> = {
 };
 
 export default async function SignInPage(props: {
-  searchParams: { callbackUrl?: string };
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const providers = providerMap;
+  const searchParams = await props.searchParams;
+  const callbackUrlParam = searchParams?.callbackUrl;
+  const callbackUrl = Array.isArray(callbackUrlParam)
+    ? callbackUrlParam[0]
+    : callbackUrlParam;
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-100 via-orange-100 to-yellow-100 px-4">
@@ -36,9 +41,10 @@ export default async function SignInPage(props: {
               action={async () => {
                 "use server";
                 try {
-                  await signIn(provider.id, {
-                    redirectTo: props.searchParams?.callbackUrl ?? "",
-                  });
+                  await signIn(
+                    provider.id,
+                    callbackUrl ? { redirectTo: callbackUrl } : undefined,
+                  );
                 } catch (err) {
                   if (err instanceof AuthError) {
                     redirect(`${SIGNIN_ERROR_URL}?error=${err.type}`);

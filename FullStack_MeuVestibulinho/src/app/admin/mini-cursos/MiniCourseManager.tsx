@@ -443,11 +443,45 @@ export default function MiniCourseManager() {
   const utils = api.useUtils();
   const coursesQuery = api.miniCurso.adminList.useQuery(undefined, {
     staleTime: 60_000,
+    retry: (failureCount, error) => {
+      if (error?.data?.code === "UNAUTHORIZED") {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
   const [selectedCourseId, setSelectedCourseId] = React.useState<string | null>(null);
   const [feedback, setFeedback] = React.useState<FeedbackState | null>(null);
   const [editingLessonId, setEditingLessonId] = React.useState<string | null>(null);
   const [expandedSection, setExpandedSection] = React.useState<string | null>(null);
+
+  const isUnauthorized = coursesQuery.error?.data?.code === "UNAUTHORIZED";
+  if (isUnauthorized) {
+    const signInUrl = `/api/auth/signin?callbackUrl=${encodeURIComponent(
+      "/admin?view=mini-cursos",
+    )}`;
+
+    return (
+      <div className="flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-red-200 bg-white p-10 text-center shadow-sm">
+        <span aria-hidden className="text-3xl">
+          🔒
+        </span>
+        <h2 className="mt-4 text-lg font-semibold text-gray-900">
+          Acesso administrativo necessário
+        </h2>
+        <p className="mt-2 max-w-md text-sm text-gray-600">
+          Sua sessão expirou ou você não tem permissão para gerenciar mini-cursos.
+          Faça login novamente com uma conta de administrador para continuar.
+        </p>
+        <a
+          href={signInUrl}
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-red-600 hover:to-orange-600"
+        >
+          Ir para a tela de login
+        </a>
+      </div>
+    );
+  }
 
   const sortCourses = React.useCallback((items: AdminCourse[]) => {
     return [...items].sort(
