@@ -165,6 +165,7 @@ export const questaoRouter = createTRPCRouter({
         titulo: `Simulado ${input.ano}`,
         tempoLimiteMinutos: 240,
         questoes,
+        serverNow: new Date().toISOString(),
       } as const;
     }),
 

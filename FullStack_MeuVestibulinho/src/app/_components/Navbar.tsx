@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
+import { signOut as signOutClient } from "next-auth/react";
 import { motion, useAnimation, AnimatePresence } from "motion/react";
 import {
   BookOpen,
@@ -37,7 +38,7 @@ type Props = {
   isAuthenticated: boolean;
   userLabel: string;
   signInHref: string;
-  signOutHref: string; // GET mostra página de confirmação do Auth.js
+  signOutCallbackUrl: string;
   rightSlot?: React.ReactNode; // renderizado no desktop (servidor injeta)
 };
 
@@ -140,11 +141,16 @@ export default function NavbarClient({
   isAuthenticated,
   userLabel,
   signInHref,
-  signOutHref,
+  signOutCallbackUrl,
   rightSlot,
 }: Props) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
+
+  const handleMobileSignOut = React.useCallback(() => {
+    setIsMobileMenuOpen(false);
+    void signOutClient({ callbackUrl: signOutCallbackUrl });
+  }, [setIsMobileMenuOpen, signOutCallbackUrl]);
 
   React.useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -266,18 +272,18 @@ export default function NavbarClient({
                   transition={{ delay: links.length * 0.1, duration: 0.3 }}
                 >
                   {isAuthenticated ? (
-                    <Link
-                      href={signOutHref}
-                      className="group flex items-center gap-4 rounded-xl p-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                    <button
+                      type="button"
+                      onClick={handleMobileSignOut}
+                      className="group flex w-full items-center gap-4 rounded-xl p-4 text-left transition-all duration-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50"
                     >
                       <div className="rounded-lg bg-gradient-to-br from-red-100 to-orange-100 p-2">
                         <User size={20} className="text-red-600" />
                       </div>
-                      <div className="font-medium text-gray-900">
+                      <span className="font-medium text-gray-900">
                         Sair ({userLabel})
-                      </div>
-                    </Link>
+                      </span>
+                    </button>
                   ) : (
                     <Link
                       href={signInHref}

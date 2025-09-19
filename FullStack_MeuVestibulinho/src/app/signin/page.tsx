@@ -13,13 +13,10 @@ const providerIcons: Record<string, ReactElement> = {
   keycloak: <SiKeycloak className="h-6 w-6" />,
 };
 
-type UiProvider = { id: string; name: string };
-
 export default async function SignInPage(props: {
   searchParams: { callbackUrl?: string };
 }) {
-  // Ajuste conforme o tipo real do providerMap:
-  const providers: UiProvider[] = providerMap as unknown as UiProvider[];
+  const providers = providerMap;
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-100 via-orange-100 to-yellow-100 px-4">

@@ -124,7 +124,7 @@ export default async function Header() {
       isAuthenticated={Boolean(user)}
       userLabel={userLabel}
       signInHref="/api/auth/signin?callbackUrl=/admin"
-      signOutHref="/api/auth/signout"
+      signOutCallbackUrl="/"
       rightSlot={RightSlot}
     />
   );

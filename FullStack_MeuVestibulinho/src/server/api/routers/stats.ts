@@ -21,15 +21,24 @@ const conteudoAggregateSchema = z.object({
   erros: z.number().int().min(0),
 });
 
-const recordSimuladoSchema = z.object({
-  simuladoAno: z.number().int().min(1900).max(2100),
-  totalQuestoes: z.number().int().min(1),
-  acertos: z.number().int().min(0),
-  erros: z.number().int().min(0),
-  puladas: z.number().int().min(0),
-  tempoTotalSegundos: z.number().int().min(0),
-  conteudos: z.array(conteudoAggregateSchema).default([]),
-});
+const recordSimuladoSchema = z
+  .object({
+    simuladoAno: z.number().int().min(1900).max(2100),
+    totalQuestoes: z.number().int().min(1),
+    acertos: z.number().int().min(0),
+    erros: z.number().int().min(0),
+    puladas: z.number().int().min(0),
+    tempoTotalSegundos: z.number().int().min(0),
+    conteudos: z.array(conteudoAggregateSchema).default([]),
+  })
+  .refine(
+    ({ acertos, erros, puladas, totalQuestoes }) =>
+      acertos + erros + puladas === totalQuestoes,
+    {
+      path: ["totalQuestoes"],
+      message: "Totais inconsistentes entre acertos, erros e puladas.",
+    },
+  );
 
 export const statsRouter = createTRPCRouter({
   getOwn: protectedProcedure.query(async ({ ctx }) => {

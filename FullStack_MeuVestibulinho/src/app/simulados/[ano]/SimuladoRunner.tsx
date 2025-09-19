@@ -81,15 +81,26 @@ const NAVIGATION_STATUS_CLASSES: Record<string, string> = {
 export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhes }) {
   const router = useRouter();
   const utils = api.useUtils();
+  const startTimestampRef = React.useRef<number>(Date.now());
+  const recordedRef = React.useRef(false);
+  const endAtRef = React.useRef<number | null>(null);
+  const serverOffsetRef = React.useRef<number>(0);
+  const storageKey = React.useMemo(
+    () => `simulado:${simulado.ano}:endAt`,
+    [simulado.ano],
+  );
+
   const recordMutation = api.stats.recordSimulado.useMutation({
     onSuccess: () => {
+      recordedRef.current = true;
       void utils.stats.getOwn.invalidate();
+    },
+    onError: () => {
+      recordedRef.current = false;
     },
   });
 
   const totalQuestoes = simulado.questoes.length;
-  const startTimestampRef = React.useRef<number>(Date.now());
-  const recordedRef = React.useRef(false);
 
   const [questionOrder, setQuestionOrder] = React.useState<string[]>(() =>
     simulado.questoes.map((questao) => questao.id),
@@ -119,6 +130,9 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
   const currentQuestionId = questionOrder[currentIndex];
   const currentQuestion = currentQuestionId ? questoesMap.get(currentQuestionId) ?? null : null;
   const currentAnswer = currentQuestionId ? answers[currentQuestionId] : undefined;
+  const currentQuestionHeadingId = currentQuestion
+    ? `questao-${currentQuestion.id}-heading`
+    : undefined;
 
   const stats = React.useMemo(() => {
     let answered = 0;
@@ -152,14 +166,17 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
           return prev;
         }
         setFinalizationReason((previous) => previous ?? reason);
-        setFinishedAt((previous) => previous ?? Date.now());
+        setFinishedAt((previous) => previous ?? Date.now() + serverOffsetRef.current);
         if (reason === "timeout") {
           setTimeRemaining(0);
+        }
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(storageKey);
         }
         return "finished";
       });
     },
-    [],
+    [storageKey],
   );
 
   React.useEffect(() => {
@@ -167,16 +184,65 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
       return;
     }
 
-    const intervalId = window.setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          window.clearInterval(intervalId);
-          finalizeSimulado("timeout");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const parsedServerNow = new Date(simulado.serverNow).getTime();
+    const serverNowMs = Number.isFinite(parsedServerNow)
+      ? parsedServerNow
+      : Date.now();
+
+    const clientNow = Date.now();
+    serverOffsetRef.current = serverNowMs - clientNow;
+
+    const limitMs = simulado.tempoLimiteMinutos * 60 * 1000;
+    const storedRaw = window.localStorage.getItem(storageKey);
+    const parsedStored = storedRaw ? Number.parseInt(storedRaw, 10) : Number.NaN;
+    let endAtMs = Number.isFinite(parsedStored) ? parsedStored : Number.NaN;
+
+    const maxAllowed = serverNowMs + limitMs;
+    if (!Number.isFinite(endAtMs) || endAtMs <= serverNowMs || endAtMs > maxAllowed) {
+      endAtMs = maxAllowed;
+      window.localStorage.setItem(storageKey, endAtMs.toString());
+    }
+
+    endAtRef.current = endAtMs;
+    startTimestampRef.current = endAtMs - limitMs;
+
+    const syncNow = Date.now() + serverOffsetRef.current;
+    const remainingSeconds = Math.max(0, Math.round((endAtMs - syncNow) / 1000));
+    setTimeRemaining(remainingSeconds);
+
+    if (remainingSeconds <= 0) {
+      finalizeSimulado("timeout");
+    }
+  }, [finalizeSimulado, simulado.serverNow, simulado.tempoLimiteMinutos, status, storageKey]);
+
+  React.useEffect(() => {
+    if (status === "finished") {
+      return;
+    }
+
+    const tick = () => {
+      const endAt = endAtRef.current;
+      if (!endAt) {
+        return;
+      }
+
+      const syncNow = Date.now() + serverOffsetRef.current;
+      const remainingSeconds = Math.max(0, Math.round((endAt - syncNow) / 1000));
+
+      if (remainingSeconds <= 0) {
+        finalizeSimulado("timeout");
+        return;
+      }
+
+      setTimeRemaining(remainingSeconds);
+    };
+
+    const intervalId = window.setInterval(tick, 1000);
+    tick();
 
     return () => window.clearInterval(intervalId);
   }, [finalizeSimulado, status]);
@@ -362,7 +428,11 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
   }, [evaluation, finishedAt, status, totalQuestoes]);
 
   React.useEffect(() => {
-    if (status !== "finished" || !evaluation || !finishedAt || recordedRef.current) {
+    if (status !== "finished" || !evaluation || !finishedAt) {
+      return;
+    }
+
+    if (recordMutation.isPending || recordedRef.current) {
       return;
     }
 
@@ -385,16 +455,16 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
   const canNavigateNext = currentIndex < questionOrder.length - 1;
 
   return (
-    <div className="space-y-6 pb-12">
-      <header className="sticky top-16 z-20 -mx-4 flex flex-col gap-4 rounded-3xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm backdrop-blur md:flex-row md:items-center md:justify-between md:px-6">
-        <div className="space-y-1">
+    <div className="min-w-0 space-y-6 pb-12">
+      <header className="sticky top-16 z-20 flex w-full flex-col gap-4 border border-gray-200 bg-white/95 px-4 py-4 shadow-sm backdrop-blur sm:rounded-3xl sm:px-6 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0 space-y-1">
           <h1 className="text-2xl font-semibold text-gray-900">{simulado.titulo}</h1>
           <p className="text-sm text-gray-600">
             Tempo limite de {simulado.tempoLimiteMinutos / 60} horas · {totalQuestoes} questão
             {totalQuestoes === 1 ? "" : "es"}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <div className="rounded-2xl bg-gray-100 px-4 py-2 text-center">
             <p className="text-[11px] font-semibold uppercase text-gray-500">Tempo restante</p>
             <p
@@ -419,7 +489,7 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
             <p className="text-lg font-semibold text-gray-700">{stats.remaining}</p>
           </div>
         </div>
-        <div className="w-full md:max-w-xs">
+        <div className="w-full min-w-0 md:max-w-xs">
           <p className="text-xs font-semibold uppercase text-gray-500">Progresso</p>
           <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-200">
             <div
@@ -434,12 +504,15 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
-        <section className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="min-w-0 space-y-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           {currentQuestion ? (
             <React.Fragment>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
+              <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2
+                    id={currentQuestionHeadingId}
+                    className="text-lg font-semibold text-gray-900"
+                  >
                     Questão {currentIndex + 1} de {totalQuestoes}
                   </h2>
                   <p className="text-xs text-gray-500">
@@ -476,14 +549,14 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full bg-red-50 px-3 py-1 font-semibold text-red-700">
+              <div className="flex min-w-0 flex-wrap gap-2 text-xs">
+                <span className="max-w-full break-words rounded-full bg-red-50 px-3 py-1 font-semibold text-red-700">
                   Conteúdo: {currentQuestion.conteudo}
                 </span>
-                <span className="rounded-full bg-orange-50 px-3 py-1 font-semibold text-orange-700">
+                <span className="max-w-full break-words rounded-full bg-orange-50 px-3 py-1 font-semibold text-orange-700">
                   Subconteúdo: {currentQuestion.subconteudo}
                 </span>
-                <span className="rounded-full bg-amber-50 px-3 py-1 font-semibold text-amber-700">
+                <span className="max-w-full break-words rounded-full bg-amber-50 px-3 py-1 font-semibold text-amber-700">
                   Habilidades: {currentQuestion.habilidades}
                 </span>
               </div>
@@ -499,50 +572,72 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
                 </div>
               )}
 
-              <p className="whitespace-pre-wrap text-base leading-relaxed text-gray-800">
+              <p className="min-w-0 break-words whitespace-pre-wrap text-base leading-relaxed text-gray-800">
                 {currentQuestion.enunciado}
               </p>
 
-              <div className="space-y-3">
+              <div
+                role="radiogroup"
+                aria-labelledby={currentQuestionHeadingId}
+                className="space-y-3"
+              >
                 {currentQuestion.alternativas.map((alternativa) => {
                   const isSelected = currentAnswer?.selectedAlternativeId === alternativa.id;
                   const isCorrect = alternativa.correta;
                   const shouldRevealCorrect = status === "finished";
 
+                  const showBadge =
+                    shouldRevealCorrect && (isCorrect || (isSelected && !isCorrect));
+                  const optionId = `questao-${currentQuestion.id}-alternativa-${alternativa.id}`;
+
                   const variant = clsx(
-                    "w-full rounded-2xl border px-4 py-3 text-left transition",
+                    "group relative block rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left transition focus-within:ring-2 focus-within:ring-red-300 focus-within:ring-offset-2 focus-within:ring-offset-white",
+                    status !== "finished"
+                      ? "cursor-pointer hover:border-red-200 hover:bg-red-50/40"
+                      : "cursor-default",
                     isSelected && status !== "finished" && "border-red-200 bg-red-50",
                     shouldRevealCorrect && isCorrect && "border-green-300 bg-green-50",
                     shouldRevealCorrect && isSelected && !isCorrect && "border-red-300 bg-red-50",
-                    !isSelected && status !== "finished" && "border-gray-200 bg-white hover:border-red-200",
                     status === "finished" && !isCorrect && "opacity-90",
                   );
 
                   return (
-                    <button
-                      key={alternativa.id}
-                      type="button"
-                      onClick={() => handleSelectAlternative(currentQuestion.id, alternativa.id)}
-                      disabled={status === "finished"}
-                      className={variant}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="mt-0.5 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-gray-100 px-2 text-sm font-semibold text-gray-700">
-                          {alternativa.letra}
-                        </span>
-                        <span className="text-sm leading-relaxed text-gray-800">{alternativa.texto}</span>
-                        {shouldRevealCorrect && isCorrect && (
-                          <span className="ml-auto inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                            Correta
+                    <label key={alternativa.id} htmlFor={optionId} className={variant}>
+                      <input
+                        id={optionId}
+                        type="radio"
+                        name={`questao-${currentQuestion.id}`}
+                        value={alternativa.id}
+                        checked={isSelected}
+                        onChange={() => handleSelectAlternative(currentQuestion.id, alternativa.id)}
+                        disabled={status === "finished"}
+                        className="sr-only"
+                      />
+                      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                          <span className="mt-0.5 inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700">
+                            {alternativa.letra}
                           </span>
-                        )}
-                        {shouldRevealCorrect && isSelected && !isCorrect && (
-                          <span className="ml-auto inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
-                            Sua resposta
+                          <span className="min-w-0 flex-1 break-words whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
+                            {alternativa.texto}
                           </span>
+                        </div>
+                        {showBadge && (
+                          <div className="flex flex-shrink-0 flex-wrap gap-2">
+                            {isCorrect && (
+                              <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                                Correta
+                              </span>
+                            )}
+                            {isSelected && !isCorrect && (
+                              <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                                Sua resposta
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
-                    </button>
+                    </label>
                   );
                 })}
               </div>
@@ -583,7 +678,7 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
           )}
         </section>
 
-        <aside className="space-y-4 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+        <aside className="min-w-0 space-y-4 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-900">Navegação</h3>
             {status === "finished" && !reportVisible && (

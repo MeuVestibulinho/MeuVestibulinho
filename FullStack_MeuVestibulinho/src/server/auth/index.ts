@@ -9,14 +9,12 @@ export const { handlers, auth: uncachedAuth, signIn, signOut } = NextAuth(authCo
 // Evita recriações desnecessárias em RSC
 export const auth = cache(uncachedAuth);
 
-export const providerMap = providers.map((provider) => {
-  if (typeof provider === "function") {
-    const providerData = provider();
+export const providerMap = providers
+  .map((provider) => {
+    const providerData = typeof provider === "function" ? provider() : provider;
     return { id: providerData.id, name: providerData.name };
-  }
-
-  return { id: provider.id, name: provider.name };
-});
+  })
+  satisfies ReadonlyArray<{ id: string; name: string }>;
 
 export function isSessionTokenError(error: unknown): error is SessionTokenError {
   if (error instanceof SessionTokenError) {
