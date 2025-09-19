@@ -106,7 +106,7 @@ const NavItem = ({ item, isMobile = false, onClose }: NavItemProps) => {
             animate={
               isHovered
                 ? { rotate: [0, -10, 10, 0], scale: [1, 1.1, 1.1, 1] }
-                : {}
+                : { rotate: 0, scale: 1 }
             }
             transition={{ duration: 0.6, ease: "easeInOut" }}
           >

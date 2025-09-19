@@ -20,7 +20,7 @@ function isAdminView(value: string | undefined): value is AdminView {
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams?: PageSearchParams;
+  searchParams?: Promise<PageSearchParams>;
 }) {
   let session: Session | null = null;
 
@@ -40,7 +40,7 @@ export default async function AdminDashboardPage({
   }
 
   const overview = await api.admin.overview();
-  const viewParam = searchParams?.view;
+  const viewParam = (await searchParams)?.view;
   const activeView: AdminView = isAdminView(viewParam) ? (viewParam as AdminView) : "overview";
   const disciplinaOptions = Object.values(Disciplina);
   const grauOptions = Object.values(GrauDificuldade);
