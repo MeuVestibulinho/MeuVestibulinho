@@ -13,8 +13,7 @@ export const providerMap = providers
   .map((provider) => {
     const providerData = typeof provider === "function" ? provider() : provider;
     return { id: providerData.id, name: providerData.name };
-  })
-  satisfies ReadonlyArray<{ id: string; name: string }>;
+  }) as Array<{ id: string; name: string }>;
 
 export function isSessionTokenError(error: unknown): error is SessionTokenError {
   if (error instanceof SessionTokenError) {
