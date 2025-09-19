@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { api } from "~/trpc/react";
 import type { AvatarEmoji } from "~/lib/profile";
 
-type ProfileSnapshot = {
+export type ProfileSnapshot = {
   name: string | null;
   email: string | null;
   username: string | null;
@@ -16,6 +16,7 @@ type ProfileSnapshot = {
 type Props = {
   profile: ProfileSnapshot;
   emojiOptions: readonly AvatarEmoji[];
+  onProfileChange?: (profile: ProfileSnapshot) => void;
 };
 
 type FieldErrors = Partial<{
@@ -27,6 +28,7 @@ type FieldErrors = Partial<{
 export default function ProfileSettingsCard({
   profile,
   emojiOptions,
+  onProfileChange,
 }: Props) {
   const utils = api.useUtils();
   const [name, setName] = React.useState(profile.name ?? "");
@@ -36,6 +38,23 @@ export default function ProfileSettingsCard({
     { type: "success" | "error"; message: string } | null
   >(null);
   const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
+  const lastProfileRef = React.useRef(profile);
+
+  React.useEffect(() => {
+    lastProfileRef.current = profile;
+  }, [profile]);
+
+  React.useEffect(() => {
+    setName(profile.name ?? "");
+  }, [profile.name]);
+
+  React.useEffect(() => {
+    setUsername(profile.username ?? "");
+  }, [profile.username]);
+
+  React.useEffect(() => {
+    setAvatar(profile.avatarEmoji);
+  }, [profile.avatarEmoji]);
 
   const updateProfile = api.profile.update.useMutation({
     onMutate: () => {
@@ -43,14 +62,22 @@ export default function ProfileSettingsCard({
       setFieldErrors({});
     },
     onSuccess: (data) => {
-      setName(data.name ?? "");
-      setUsername(data.username ?? "");
-      setAvatar(data.avatarEmoji);
+      const snapshot: ProfileSnapshot = {
+        name: data.name ?? null,
+        username: data.username ?? null,
+        email: data.email ?? lastProfileRef.current.email ?? null,
+        avatarEmoji: data.avatarEmoji,
+      };
+
+      setName(snapshot.name ?? "");
+      setUsername(snapshot.username ?? "");
+      setAvatar(snapshot.avatarEmoji);
       setFeedback({
         type: "success",
         message: "Preferências atualizadas com sucesso!",
       });
       void utils.profile.getCurrent.invalidate();
+      onProfileChange?.(snapshot);
     },
     onError: (error) => {
       const zodError = error.data?.zodError?.fieldErrors;

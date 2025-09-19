@@ -85,6 +85,7 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
   const recordedRef = React.useRef(false);
   const endAtRef = React.useRef<number | null>(null);
   const serverOffsetRef = React.useRef<number>(0);
+  const navigationGuardRef = React.useRef(false);
   const storageKey = React.useMemo(
     () => `simulado:${simulado.ano}:endAt`,
     [simulado.ano],
@@ -118,6 +119,8 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
   const [finishedAt, setFinishedAt] = React.useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = React.useState(simulado.tempoLimiteMinutos * 60);
   const [reportVisible, setReportVisible] = React.useState(false);
+  const leaveWarningMessage =
+    "Se você sair agora, o simulado será encerrado e suas respostas atuais serão registradas. Deseja continuar?";
 
   const questoesMap = React.useMemo(() => {
     const map = new Map<string, SimuladoDetalhes["questoes"][number]>();
@@ -218,6 +221,88 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
       finalizeSimulado("timeout");
     }
   }, [finalizeSimulado, simulado.serverNow, simulado.tempoLimiteMinutos, status, storageKey]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (status !== "in-progress") {
+      navigationGuardRef.current = false;
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = leaveWarningMessage;
+      return leaveWarningMessage;
+    };
+
+    const handlePopState = () => {
+      const proceed = window.confirm(leaveWarningMessage);
+      if (proceed) {
+        finalizeSimulado("manual");
+      } else {
+        window.history.forward();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    if (!navigationGuardRef.current) {
+      window.history.pushState({ simuladoGuard: true }, "", window.location.href);
+      navigationGuardRef.current = true;
+    }
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [finalizeSimulado, leaveWarningMessage, status]);
+
+  React.useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    if (status !== "in-progress") {
+      return;
+    }
+
+    const handleAnchorClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      const anchor = target.closest<HTMLAnchorElement>("a[href]");
+      if (!anchor) return;
+
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+      if (
+        anchor.target === "_blank" ||
+        anchor.hasAttribute("download") ||
+        href.startsWith("#") ||
+        href.startsWith("mailto:") ||
+        href.startsWith("tel:") ||
+        href.startsWith("javascript:")
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const proceed = window.confirm(leaveWarningMessage);
+      if (proceed) {
+        finalizeSimulado("manual");
+      }
+    };
+
+    document.addEventListener("click", handleAnchorClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleAnchorClick, true);
+    };
+  }, [finalizeSimulado, leaveWarningMessage, status]);
 
   React.useEffect(() => {
     if (status === "finished") {

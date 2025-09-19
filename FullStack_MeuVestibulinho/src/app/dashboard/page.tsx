@@ -3,7 +3,7 @@ import type { Session } from "next-auth";
 
 import { auth, swallowSessionTokenError } from "~/server/auth";
 import { api } from "~/trpc/server";
-import ProfileSettingsCard from "./ProfileSettingsCard";
+import ProfileOverviewSection from "./ProfileOverviewSection";
 import { AVATAR_EMOJIS, normalizeAvatarEmoji } from "~/lib/profile";
 
 function formatDuration(seconds: number): string {
@@ -51,10 +51,8 @@ export default async function DashboardPage() {
     ? Math.round(((stats.totalAcertos / stats.totalQuestoes) * 100) * 10) / 10
     : 0;
   const avatarEmoji = normalizeAvatarEmoji(profile?.avatarEmoji);
-  const displayName = profile?.name ?? session.user.name ?? "Bem-vindo(a)!";
-  const usernameLabel = profile?.username
-    ? `@${profile.username}`
-    : "Defina um nome de usuário para identificar seus resultados.";
+  const fallbackDisplayName = profile?.name ?? session.user.name ?? "Bem-vindo(a)!";
+  const usernameFallbackMessage = "Defina um nome de usuário para identificar seus resultados.";
   const emailLabel = profile?.email ?? session.user.email ?? "—";
 
   return (
@@ -66,38 +64,18 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <section className="mb-12 grid gap-6 lg:grid-cols-[minmax(0,280px)_1fr]">
-        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-4xl">
-              {avatarEmoji}
-            </div>
-            <div className="space-y-1">
-              <p className="text-base font-semibold text-gray-900">{displayName}</p>
-              <p className="text-sm text-gray-500">{usernameLabel}</p>
-            </div>
-          </div>
-          <dl className="mt-6 space-y-3 text-sm text-gray-600">
-            <div>
-              <dt className="font-semibold text-gray-800">E-mail</dt>
-              <dd>{emailLabel}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-gray-800">Simulados concluídos</dt>
-              <dd>{stats?.simuladosConcluidos ?? 0}</dd>
-            </div>
-          </dl>
-        </div>
-        <ProfileSettingsCard
-          profile={{
-            name: profile?.name ?? null,
-            email: emailLabel,
-            username: profile?.username ?? null,
-            avatarEmoji,
-          }}
-          emojiOptions={AVATAR_EMOJIS}
-        />
-      </section>
+      <ProfileOverviewSection
+        stats={stats}
+        initialProfile={{
+          name: profile?.name ?? null,
+          email: emailLabel,
+          username: profile?.username ?? null,
+          avatarEmoji,
+        }}
+        emojiOptions={AVATAR_EMOJIS}
+        fallbackDisplayName={fallbackDisplayName}
+        usernameFallbackMessage={usernameFallbackMessage}
+      />
 
       {stats ? (
         <div className="space-y-10">
@@ -143,16 +121,16 @@ export default async function DashboardPage() {
                       key={`${item.conteudo}-${item.subconteudo}-melhor`}
                       className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3"
                     >
-                      <div className="flex items-center justify-between text-sm">
-                        <div>
-                          <p className="font-semibold text-green-800">{item.conteudo}</p>
-                          <p className="text-xs text-green-700">{item.subconteudo}</p>
+                      <div className="flex min-w-0 items-start justify-between gap-4 text-sm">
+                        <div className="min-w-0 space-y-0.5">
+                          <p className="break-words font-semibold text-green-800">{item.conteudo}</p>
+                          <p className="break-words text-xs text-green-700">{item.subconteudo}</p>
                         </div>
-                        <span className="text-xs font-semibold text-green-700">
+                        <span className="flex-shrink-0 text-xs font-semibold text-green-700">
                           {item.percentualAcerto.toFixed(1)}%
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-green-700">
+                      <p className="mt-1 break-words text-xs leading-relaxed text-green-700">
                         {item.acertos} acerto{item.acertos === 1 ? "" : "s"} em {item.total} tentativa{item.total === 1 ? "" : "s"}.
                       </p>
                     </li>
@@ -175,16 +153,16 @@ export default async function DashboardPage() {
                       key={`${item.conteudo}-${item.subconteudo}-revisar`}
                       className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
                     >
-                      <div className="flex items-center justify-between text-sm">
-                        <div>
-                          <p className="font-semibold text-red-800">{item.conteudo}</p>
-                          <p className="text-xs text-red-700">{item.subconteudo}</p>
+                      <div className="flex min-w-0 items-start justify-between gap-4 text-sm">
+                        <div className="min-w-0 space-y-0.5">
+                          <p className="break-words font-semibold text-red-800">{item.conteudo}</p>
+                          <p className="break-words text-xs text-red-700">{item.subconteudo}</p>
                         </div>
-                        <span className="text-xs font-semibold text-red-700">
+                        <span className="flex-shrink-0 text-xs font-semibold text-red-700">
                           {item.percentualAcerto.toFixed(1)}%
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-red-700">
+                      <p className="mt-1 break-words text-xs leading-relaxed text-red-700">
                         {item.erros} erro{item.erros === 1 ? "" : "s"} em {item.total} tentativa{item.total === 1 ? "" : "s"}.
                       </p>
                     </li>
@@ -203,7 +181,7 @@ export default async function DashboardPage() {
               <p className="mt-4 text-sm text-gray-600">Resolva um simulado para destravar suas estatísticas individuais.</p>
             ) : (
               <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100">
-                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <table className="min-w-full table-fixed divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-500">
                     <tr>
                       <th className="px-4 py-3">Conteúdo</th>
@@ -216,8 +194,8 @@ export default async function DashboardPage() {
                   <tbody className="divide-y divide-gray-100">
                     {stats.conteudosDetalhados.map((item) => (
                       <tr key={`${item.conteudo}-${item.subconteudo}-linha`}>
-                        <td className="px-4 py-3 font-medium text-gray-800">{item.conteudo}</td>
-                        <td className="px-4 py-3 text-gray-600">{item.subconteudo}</td>
+                        <td className="px-4 py-3 break-words font-medium leading-relaxed text-gray-800">{item.conteudo}</td>
+                        <td className="px-4 py-3 break-words leading-relaxed text-gray-600">{item.subconteudo}</td>
                         <td className="px-4 py-3 text-center text-green-700">{item.acertos}</td>
                         <td className="px-4 py-3 text-center text-red-600">{item.erros}</td>
                         <td className="px-4 py-3 text-center text-gray-700">{item.percentualAcerto.toFixed(1)}%</td>
