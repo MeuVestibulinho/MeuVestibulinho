@@ -13,7 +13,11 @@ import {
   Trash2,
 } from "lucide-react";
 
-import type { MiniCourseLevel } from "~/lib/mini-course";
+import {
+  miniCourseDetailsSchema,
+  miniCourseSectionDetailsSchema,
+  type MiniCourseLevel,
+} from "~/lib/mini-course";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 type AdminCourse = RouterOutputs["miniCurso"]["adminList"][number];
@@ -46,6 +50,13 @@ const LESSON_LABEL: Record<LessonType, string> = {
   video: "Vídeo",
   exercise: "Prática",
 };
+
+const FORM_DEFAULT_ERROR =
+  "Revise os campos obrigatórios e tente novamente.";
+
+function getFirstIssueMessage(issues: Array<{ message: string }>) {
+  return issues[0]?.message ?? FORM_DEFAULT_ERROR;
+}
 
 type FeedbackState = {
   type: "success" | "error";
@@ -624,50 +635,106 @@ export default function MiniCourseManager() {
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) ?? null;
   const handleCreateCourse = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (createCourseMutation.isPending) {
+      return;
+    }
     const form = event.currentTarget;
     const data = new FormData(form);
 
-    const estimatedRaw = Number(data.get("estimatedMinutes"));
-    const estimatedMinutes = Number.isFinite(estimatedRaw) && estimatedRaw > 0 ? estimatedRaw : 45;
+    const title = String(data.get("title") ?? "").trim();
+    const subtitle = String(data.get("subtitle") ?? "").trim();
+    const category = String(data.get("category") ?? "").trim();
+    const level = (data.get("level") ?? "iniciante") as MiniCourseLevel;
+    const emoji = String(data.get("emoji") ?? "📘").trim() || "📘";
+    const themeColor = String(data.get("themeColor") ?? "#f97316").trim();
+    const estimatedInput = String(data.get("estimatedMinutes") ?? "").trim();
 
-    createCourseMutation.mutate(
-      {
-        title: String(data.get("title") ?? "").trim(),
-        subtitle: String(data.get("subtitle") ?? "").trim(),
-        category: String(data.get("category") ?? "").trim(),
-        level: (data.get("level") ?? "iniciante") as MiniCourseLevel,
-        emoji: String(data.get("emoji") ?? "📘").trim() || "📘",
-        themeColor: String(data.get("themeColor") ?? "#f97316"),
-        estimatedMinutes,
+    const estimatedMinutesValue =
+      estimatedInput === "" ? 45 : Number(estimatedInput);
+
+    if (!Number.isFinite(estimatedMinutesValue)) {
+      setFeedback({
+        type: "error",
+        message: "Informe uma duração válida em minutos.",
+      });
+      return;
+    }
+
+    const parsed = miniCourseDetailsSchema.safeParse({
+      title,
+      subtitle,
+      category,
+      level,
+      emoji,
+      themeColor,
+      estimatedMinutes: estimatedMinutesValue,
+    });
+
+    if (!parsed.success) {
+      setFeedback({
+        type: "error",
+        message: getFirstIssueMessage(parsed.error.issues),
+      });
+      return;
+    }
+
+    createCourseMutation.mutate(parsed.data, {
+      onSuccess: () => {
+        form.reset();
       },
-      {
-        onSuccess: () => {
-          form.reset();
-        },
-      },
-    );
+    });
   };
 
   const handleUpdateCourse = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedCourse) return;
+    if (updateCourseMutation.isPending) {
+      return;
+    }
 
     const data = new FormData(event.currentTarget);
-    const estimatedRaw = Number(data.get("estimatedMinutes"));
-    const estimatedMinutes =
-      Number.isFinite(estimatedRaw) && estimatedRaw > 0
-        ? estimatedRaw
-        : selectedCourse.estimatedMinutes;
+    const title = String(data.get("title") ?? "").trim();
+    const subtitle = String(data.get("subtitle") ?? "").trim();
+    const category = String(data.get("category") ?? "").trim();
+    const level = (data.get("level") ?? selectedCourse.level) as MiniCourseLevel;
+    const emoji = String(data.get("emoji") ?? selectedCourse.emoji).trim() || selectedCourse.emoji;
+    const themeColor = String(data.get("themeColor") ?? selectedCourse.themeColor).trim();
+    const estimatedInput = String(data.get("estimatedMinutes") ?? "").trim();
+
+    const estimatedMinutesValue =
+      estimatedInput === ""
+        ? selectedCourse.estimatedMinutes
+        : Number(estimatedInput);
+
+    if (!Number.isFinite(estimatedMinutesValue)) {
+      setFeedback({
+        type: "error",
+        message: "Informe uma duração válida em minutos.",
+      });
+      return;
+    }
+
+    const parsed = miniCourseDetailsSchema.safeParse({
+      title,
+      subtitle,
+      category,
+      level,
+      emoji,
+      themeColor,
+      estimatedMinutes: estimatedMinutesValue,
+    });
+
+    if (!parsed.success) {
+      setFeedback({
+        type: "error",
+        message: getFirstIssueMessage(parsed.error.issues),
+      });
+      return;
+    }
 
     updateCourseMutation.mutate({
       courseId: selectedCourse.id,
-      title: String(data.get("title") ?? "").trim(),
-      subtitle: String(data.get("subtitle") ?? "").trim(),
-      category: String(data.get("category") ?? "").trim(),
-      level: (data.get("level") ?? selectedCourse.level) as MiniCourseLevel,
-      emoji: String(data.get("emoji") ?? selectedCourse.emoji).trim() || selectedCourse.emoji,
-      themeColor: String(data.get("themeColor") ?? selectedCourse.themeColor),
-      estimatedMinutes,
+      ...parsed.data,
     });
   };
 
@@ -685,15 +752,33 @@ export default function MiniCourseManager() {
   const handleCreateSection = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedCourse) return;
+    if (createSectionMutation.isPending) {
+      return;
+    }
 
     const form = event.currentTarget;
     const data = new FormData(form);
 
+    const title = String(data.get("title") ?? "").trim();
+    const summaryValue = String(data.get("summary") ?? "").trim();
+
+    const parsed = miniCourseSectionDetailsSchema.safeParse({
+      title,
+      summary: summaryValue === "" ? undefined : summaryValue,
+    });
+
+    if (!parsed.success) {
+      setFeedback({
+        type: "error",
+        message: getFirstIssueMessage(parsed.error.issues),
+      });
+      return;
+    }
+
     createSectionMutation.mutate(
       {
         courseId: selectedCourse.id,
-        title: String(data.get("title") ?? "").trim(),
-        summary: String(data.get("summary") ?? "").trim() || undefined,
+        ...parsed.data,
       },
       {
         onSuccess: () => {
@@ -889,11 +974,29 @@ export default function MiniCourseManager() {
   const handleUpdateSection = (section: AdminSection) =>
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      if (updateSectionMutation.isPending) {
+        return;
+      }
       const data = new FormData(event.currentTarget);
+      const title = String(data.get("title") ?? "").trim();
+      const summaryValue = String(data.get("summary") ?? "").trim();
+
+      const parsed = miniCourseSectionDetailsSchema.safeParse({
+        title,
+        summary: summaryValue === "" ? undefined : summaryValue,
+      });
+
+      if (!parsed.success) {
+        setFeedback({
+          type: "error",
+          message: getFirstIssueMessage(parsed.error.issues),
+        });
+        return;
+      }
+
       updateSectionMutation.mutate({
         sectionId: section.id,
-        title: String(data.get("title") ?? "").trim(),
-        summary: String(data.get("summary") ?? "").trim() || undefined,
+        ...parsed.data,
       });
     };
 

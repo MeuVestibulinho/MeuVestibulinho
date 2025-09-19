@@ -53,7 +53,9 @@ export type MiniCourseLessonContent = z.infer<typeof lessonContentSchema>;
 export const hexColorSchema = z
   .string()
   .trim()
-  .regex(/^#(?:[0-9a-fA-F]{3}){1,2}$/)
+  .regex(/^#(?:[0-9a-fA-F]{3}){1,2}$/, {
+    message: "Informe uma cor hexadecimal válida (#RRGGBB).",
+  })
   .transform((value) => value.toLowerCase());
 
 export function slugifyMiniCourseTitle(title: string): string {
@@ -109,3 +111,60 @@ export const lessonDurationSchema = z
   .min(1)
   .max(180)
   .optional();
+
+export const miniCourseDetailsSchema = z.object({
+  title: z
+    .string({ required_error: "Informe um título para o mini-curso." })
+    .trim()
+    .min(3, { message: "O título deve ter pelo menos 3 caracteres." })
+    .max(120, { message: "O título pode ter no máximo 120 caracteres." }),
+  subtitle: z
+    .string({ required_error: "Descreva rapidamente o mini-curso." })
+    .trim()
+    .min(10, { message: "Use pelo menos 10 caracteres na descrição." })
+    .max(400, {
+      message: "A descrição pode ter no máximo 400 caracteres.",
+    }),
+  category: z
+    .string({ required_error: "Informe a categoria do mini-curso." })
+    .trim()
+    .min(3, { message: "A categoria deve ter pelo menos 3 caracteres." })
+    .max(60, { message: "A categoria pode ter no máximo 60 caracteres." }),
+  level: miniCourseLevelSchema,
+  emoji: z
+    .string({ required_error: "Escolha um emoji para o mini-curso." })
+    .trim()
+    .min(1, { message: "Escolha ao menos um emoji." })
+    .max(4, { message: "Use até 4 caracteres para o emoji." }),
+  themeColor: hexColorSchema,
+  estimatedMinutes: z
+    .number({
+      coerce: true,
+      invalid_type_error: "Informe a carga horária em minutos.",
+    })
+    .int({ message: "A duração deve ser um número inteiro." })
+    .min(10, { message: "O mini-curso deve ter pelo menos 10 minutos." })
+    .max(600, { message: "O mini-curso pode ter no máximo 600 minutos." }),
+});
+
+export type MiniCourseDetailsInput = z.infer<typeof miniCourseDetailsSchema>;
+
+export const miniCourseSectionDetailsSchema = z.object({
+  title: z
+    .string({ required_error: "Informe o título da seção." })
+    .trim()
+    .min(3, { message: "O título da seção deve ter pelo menos 3 caracteres." })
+    .max(120, {
+      message: "O título da seção pode ter no máximo 120 caracteres.",
+    }),
+  summary: z
+    .string()
+    .trim()
+    .min(3, { message: "O resumo deve ter pelo menos 3 caracteres." })
+    .max(400, { message: "O resumo pode ter no máximo 400 caracteres." })
+    .optional(),
+});
+
+export type MiniCourseSectionDetailsInput = z.infer<
+  typeof miniCourseSectionDetailsSchema
+>;

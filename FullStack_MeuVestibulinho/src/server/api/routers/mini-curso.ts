@@ -8,10 +8,10 @@ import { z } from "zod";
 
 import {
   extractYoutubeId,
-  hexColorSchema,
   lessonContentSchema,
   lessonDurationSchema,
-  miniCourseLevelSchema,
+  miniCourseDetailsSchema,
+  miniCourseSectionDetailsSchema,
   slugifyMiniCourseTitle,
 } from "~/lib/mini-course";
 import {
@@ -19,21 +19,6 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "~/server/api/trpc";
-
-const courseDetailsSchema = z.object({
-  title: z.string().trim().min(3).max(120),
-  subtitle: z.string().trim().min(10).max(400),
-  category: z.string().trim().min(3).max(60),
-  level: miniCourseLevelSchema,
-  emoji: z.string().trim().min(1).max(4),
-  themeColor: hexColorSchema,
-  estimatedMinutes: z.number({ coerce: true }).int().min(10).max(600),
-});
-
-const sectionDetailsSchema = z.object({
-  title: z.string().trim().min(3).max(120),
-  summary: z.string().trim().min(3).max(400).optional(),
-});
 
 const courseWithRelations = {
   include: {
@@ -261,7 +246,7 @@ export const miniCursoRouter = createTRPCRouter({
   }),
 
   createCourse: adminProcedure
-    .input(courseDetailsSchema)
+    .input(miniCourseDetailsSchema)
     .mutation(async ({ ctx, input }) => {
       const baseSlug = slugifyMiniCourseTitle(input.title);
       let slug = baseSlug;
@@ -306,7 +291,7 @@ export const miniCursoRouter = createTRPCRouter({
     }),
 
   updateCourse: adminProcedure
-    .input(courseDetailsSchema.extend({ courseId: z.string().cuid() }))
+    .input(miniCourseDetailsSchema.extend({ courseId: z.string().cuid() }))
     .mutation(async ({ ctx, input }) => {
       const course = await ctx.db.miniCourse.update({
         where: { id: input.courseId },
@@ -333,7 +318,7 @@ export const miniCursoRouter = createTRPCRouter({
     }),
 
   createSection: adminProcedure
-    .input(sectionDetailsSchema.extend({ courseId: z.string().cuid() }))
+    .input(miniCourseSectionDetailsSchema.extend({ courseId: z.string().cuid() }))
     .mutation(async ({ ctx, input }) => {
       const lastSection = await ctx.db.miniCourseSection.findFirst({
         where: { courseId: input.courseId },
@@ -357,7 +342,7 @@ export const miniCursoRouter = createTRPCRouter({
 
   updateSection: adminProcedure
     .input(
-      sectionDetailsSchema.extend({ sectionId: z.string().cuid() }),
+      miniCourseSectionDetailsSchema.extend({ sectionId: z.string().cuid() }),
     )
     .mutation(async ({ ctx, input }) => {
       const section = await ctx.db.miniCourseSection.update({
