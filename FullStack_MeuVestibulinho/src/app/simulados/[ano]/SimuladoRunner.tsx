@@ -936,8 +936,8 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
                 )}
               </section>
 
-              <section>
-                <h3 className="text-lg font-semibold text-gray-900">Conteúdos para revisar</h3>
+              <section className="overflow-hidden">
+                <h3 className="text-lg font-semibold text-gray-900 break-words">Conteúdos para revisar</h3>
                 {report.conteudosErros.length === 0 ? (
                   <p className="mt-2 text-sm text-gray-600">Nenhum erro registrado. Excelente desempenho!</p>
                 ) : (
@@ -945,9 +945,9 @@ export default function SimuladoRunner({ simulado }: { simulado: SimuladoDetalhe
                     {report.conteudosErros.map((item) => (
                       <li
                         key={`${item.conteudo}-${item.subconteudo}`}
-                        className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                        className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 break-words"
                       >
-                        <p className="font-semibold">{item.conteudo}</p>
+                        <p className="font-semibold break-words">{item.conteudo}</p>
                         <p className="text-xs text-red-700">{item.subconteudo}</p>
                         <p className="mt-1 text-xs text-red-700">
                           {item.quantidade} questão{item.quantidade === 1 ? "" : "s"} com necessidade de revisão.
